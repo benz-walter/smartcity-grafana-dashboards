@@ -1,0 +1,1393 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A visual representation of Prometheus metrics collected from CNPG PgBouncer Pooler",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1447,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "session"
+                },
+                "2": {
+                  "color": "yellow",
+                  "index": 1,
+                  "text": "transaction"
+                },
+                "3": {
+                  "color": "orange",
+                  "index": 2,
+                  "text": "statement"
+                },
+                "-1": {
+                  "color": "red",
+                  "index": 3,
+                  "text": "unknown"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 27,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "cnpg_pgbouncer_pools_pool_mode{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+          "legendFormat": "Pooling mode",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 2
+      },
+      "id": 20,
+      "panels": [],
+      "title": "Queries & Transactions",
+      "type": "row"
+    },
+    {
+      "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 3
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "rate(cnpg_pgbouncer_stats_total_query_count{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}[5m])",
+          "legendFormat": "Queries per Second -",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Queries per Second",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 3
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "cnpg_pgbouncer_stats_avg_query_count{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+          "legendFormat": "Queries/sec -",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "expr": "cnpg_pgbouncer_stats_avg_xact_count{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+          "legendFormat": "Transactions/sec -",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Queries & Transactions per Second",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "µs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "id": 23,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "cnpg_pgbouncer_stats_avg_query_time{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+          "legendFormat": "Avg query time -",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Average Query Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+      "description": "Helps to estimate percentage of the time connections from PgBouncer are in the \"idle\" state in PostgreSQL",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "1 - cnpg_pgbouncer_stats_avg_query_time{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"} / cnpg_pgbouncer_stats_avg_xact_time{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+          "legendFormat": "Idle in Transaction -",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Idle in Transaction percent of time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "µs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "id": 19,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "cnpg_pgbouncer_stats_avg_wait_time{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+          "legendFormat": "Avg Wait Time -",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Average Client Wait Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "cnpg_pgbouncer_stats_avg_recv{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+          "legendFormat": "Received -",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "editorMode": "code",
+          "expr": "cnpg_pgbouncer_stats_avg_sent{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+          "legendFormat": "Sent -",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Network Throughput",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 21,
+      "panels": [
+        {
+          "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 28
+          },
+          "id": 25,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "last",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.1.0",
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_pools_sv_active{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+              "legendFormat": "Active conn (sv_active)",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "dd1d49dd-5b51-439c-b275-ccde5698bd88"
+              },
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_pools_sv_idle{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Idle conn (sv_idle)",
+              "range": true,
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "dd1d49dd-5b51-439c-b275-ccde5698bd88"
+              },
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_pools_sv_login{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Login conn (sv_login)",
+              "range": true,
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "dd1d49dd-5b51-439c-b275-ccde5698bd88"
+              },
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_pools_sv_tested{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Tested conn (sv_tested)",
+              "range": true,
+              "refId": "D"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "dd1d49dd-5b51-439c-b275-ccde5698bd88"
+              },
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_pools_sv_used{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Used conn (sv_used)",
+              "range": true,
+              "refId": "E"
+            }
+          ],
+          "title": "Server Connections",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineStyle": {
+                  "fill": "solid"
+                },
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 28
+          },
+          "id": 2,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "last",
+                "max"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.1.0",
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_lists_used_servers{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", pod=\"$pod\"}",
+              "legendFormat": "Used Servers -",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_lists_free_servers{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", pod=\"$pod\"}",
+              "legendFormat": "Free Servers -",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Count of Servers",
+          "type": "timeseries"
+        }
+      ],
+      "title": "Server Connections",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 22,
+      "panels": [
+        {
+          "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 29
+          },
+          "id": 26,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "last",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.1.0",
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+              "legendFormat": "Active conn (cl_active)",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "dd1d49dd-5b51-439c-b275-ccde5698bd88"
+              },
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_pools_cl_waiting{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Waiting conn (cl_waiting)",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Client Connections",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+          "description": "How long the first (oldest) client in the queue has waited, in seconds. If this starts increasing, then the current pool of servers does not handle requests quickly enough. The reason may be either an overloaded server or just too small of a pool_size setting.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "µs"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 29
+          },
+          "id": 18,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "last",
+                "max"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.1.0",
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_pools_maxwait_us{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=~\"$database\", pod=\"$pod\"}",
+              "legendFormat": "Max Wait Time -",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Maximum Client Wait Time",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 37
+          },
+          "id": 17,
+          "options": {
+            "legend": {
+              "calcs": [
+                "mean",
+                "last",
+                "max"
+              ],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "12.1.0",
+          "targets": [
+            {
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_lists_used_clients{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", pod=\"$pod\"}",
+              "legendFormat": "Used Clients -",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "editorMode": "code",
+              "expr": "cnpg_pgbouncer_lists_free_clients{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", pod=\"$pod\"}",
+              "legendFormat": "Free Clients -",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Client Connections",
+          "type": "timeseries"
+        }
+      ],
+      "title": "Client Connections",
+      "type": "row"
+    }
+  ],
+  "preload": false,
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "VictoriaMetrics",
+          "value": "dd1d49dd-5b51-439c-b275-ccde5698bd88"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "label": "Datasource",
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "allowCustomValue": true,
+        "current": {
+          "text": "kube-hard",
+          "value": "kube-hard"
+        },
+        "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+        "definition": "label_values(cnpg_pgbouncer_pools_cl_active,cluster)",
+        "includeAll": false,
+        "label": "Cluster",
+        "name": "cluster",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(cnpg_pgbouncer_pools_cl_active,cluster)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allowCustomValue": true,
+        "current": {
+          "text": "test",
+          "value": "test"
+        },
+        "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+        "definition": "label_values(cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\"},namespace)",
+        "includeAll": false,
+        "label": "Namespace",
+        "name": "namespace",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\"},namespace)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allowCustomValue": true,
+        "current": {
+          "text": "test",
+          "value": "test"
+        },
+        "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+        "definition": "label_values(cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\", namespace=\"$namespace\"},cnpg_cluster)",
+        "includeAll": false,
+        "label": "CNPG Cluster",
+        "name": "cnpg_cluster",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\", namespace=\"$namespace\"},cnpg_cluster)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allowCustomValue": true,
+        "current": {
+          "text": "owebui",
+          "value": "owebui"
+        },
+        "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+        "definition": "label_values(cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\"},database)",
+        "includeAll": false,
+        "label": "Database",
+        "name": "database",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\"},database)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allowCustomValue": true,
+        "current": {
+          "text": "test",
+          "value": "test"
+        },
+        "datasource": "dd1d49dd-5b51-439c-b275-ccde5698bd88",
+        "definition": "label_values(cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=\"$database\"},pod)",
+        "includeAll": false,
+        "label": "Pod",
+        "name": "pod",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(cnpg_pgbouncer_pools_cl_active{cluster=\"$cluster\", namespace=\"$namespace\", cnpg_cluster=\"$cnpg_cluster\", database=\"$database\"},pod)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "CNPG PgBouncer Pooler",
+  "uid": "cnpg-pgbouncer-pooler",
+  "version": 6
+}
