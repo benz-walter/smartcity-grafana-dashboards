@@ -3,8 +3,8 @@
   "kind": "Dashboard",
   "metadata": {
     "name": "adbhb2w",
-    "generation": 4,
-    "creationTimestamp": "2026-06-10T08:01:39Z",
+    "generation": 5,
+    "creationTimestamp": "2026-06-10T07:23:00Z",
     "labels": {},
     "annotations": {}
   },
@@ -27,7 +27,7 @@
         }
       }
     ],
-    "cursorSync": "Off",
+    "cursorSync": "Crosshair",
     "description": "",
     "editable": true,
     "elements": {
@@ -553,6 +553,230 @@
             }
           }
         }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "id": 5,
+          "title": "",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "labels": {
+                        "grafana.app/export-label": "prometheus-1"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(airflow_pool_open_slots)",
+                        "legendFormat": "Open slots",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "labels": {
+                        "grafana.app/export-label": "prometheus-1"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(airflow_pool_running_slots)",
+                        "instant": false,
+                        "legendFormat": "Running slots",
+                        "range": true
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "labels": {
+                        "grafana.app/export-label": "prometheus-1"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(airflow_pool_starving_tasks)",
+                        "instant": false,
+                        "legendFormat": "Starving tasks",
+                        "range": true
+                      }
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "labels": {
+                        "grafana.app/export-label": "prometheus-1"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(airflow_pool_scheduled_slots)",
+                        "instant": false,
+                        "legendFormat": "Scheduled slots",
+                        "range": true
+                      }
+                    },
+                    "refId": "D",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "labels": {
+                        "grafana.app/export-label": "prometheus-1"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(airflow_pool_queued_slots)",
+                        "instant": false,
+                        "legendFormat": "Queued slots",
+                        "range": true
+                      }
+                    },
+                    "refId": "E",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "labels": {
+                        "grafana.app/export-label": "prometheus-1"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(airflow_pool_deferred_slots)",
+                        "instant": false,
+                        "legendFormat": "Deferred slots",
+                        "range": true
+                      }
+                    },
+                    "refId": "F",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "13.0.1",
+            "spec": {
+              "options": {
+                "annotations": {
+                  "clustering": -1,
+                  "multiLane": false
+                },
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
       }
     },
     "layout": {
@@ -586,6 +810,32 @@
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-4"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "title": "Pools",
+              "collapse": false,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "maxColumnCount": 3,
+                  "columnWidthMode": "standard",
+                  "rowHeightMode": "standard",
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-5"
                         }
                       }
                     }
@@ -638,8 +888,8 @@
     "tags": [],
     "timeSettings": {
       "timezone": "browser",
-      "from": "now-6h",
-      "to": "now",
+      "from": "2026-06-09T09:35:56.794Z",
+      "to": "2026-06-09T09:46:22.235Z",
       "autoRefresh": "auto",
       "autoRefreshIntervals": [
         "5s",
@@ -656,7 +906,7 @@
       "hideTimepicker": false,
       "fiscalYearStartMonth": 0
     },
-    "title": "Component: Airflow Clusters Copy",
+    "title": "Component: Airflow Clusters",
     "variables": [
       {
         "kind": "DatasourceVariable",
