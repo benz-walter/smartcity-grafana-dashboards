@@ -3,7 +3,7 @@
   "kind": "Dashboard",
   "metadata": {
     "name": "adbhb2w",
-    "generation": 5,
+    "generation": 6,
     "creationTimestamp": "2026-06-10T07:23:00Z",
     "labels": {},
     "annotations": {}
@@ -28,7 +28,6 @@
       }
     ],
     "cursorSync": "Crosshair",
-    "description": "",
     "editable": true,
     "elements": {
       "panel-1": {
@@ -572,9 +571,6 @@
                       "kind": "DataQuery",
                       "group": "prometheus",
                       "version": "v0",
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1"
-                      },
                       "spec": {
                         "editorMode": "code",
                         "expr": "sum(airflow_pool_open_slots)",
@@ -593,9 +589,6 @@
                       "kind": "DataQuery",
                       "group": "prometheus",
                       "version": "v0",
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1"
-                      },
                       "spec": {
                         "editorMode": "code",
                         "expr": "sum(airflow_pool_running_slots)",
@@ -615,9 +608,6 @@
                       "kind": "DataQuery",
                       "group": "prometheus",
                       "version": "v0",
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1"
-                      },
                       "spec": {
                         "editorMode": "code",
                         "expr": "sum(airflow_pool_starving_tasks)",
@@ -637,9 +627,6 @@
                       "kind": "DataQuery",
                       "group": "prometheus",
                       "version": "v0",
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1"
-                      },
                       "spec": {
                         "editorMode": "code",
                         "expr": "sum(airflow_pool_scheduled_slots)",
@@ -659,9 +646,6 @@
                       "kind": "DataQuery",
                       "group": "prometheus",
                       "version": "v0",
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1"
-                      },
                       "spec": {
                         "editorMode": "code",
                         "expr": "sum(airflow_pool_queued_slots)",
@@ -681,9 +665,6 @@
                       "kind": "DataQuery",
                       "group": "prometheus",
                       "version": "v0",
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1"
-                      },
                       "spec": {
                         "editorMode": "code",
                         "expr": "sum(airflow_pool_deferred_slots)",
@@ -888,9 +869,9 @@
     "tags": [],
     "timeSettings": {
       "timezone": "browser",
-      "from": "2026-06-09T09:35:56.794Z",
-      "to": "2026-06-09T09:46:22.235Z",
-      "autoRefresh": "auto",
+      "from": "now-3h",
+      "to": "now",
+      "autoRefresh": "30s",
       "autoRefreshIntervals": [
         "5s",
         "10s",
