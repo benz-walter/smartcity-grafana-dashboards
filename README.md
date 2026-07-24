@@ -23,6 +23,10 @@ If you update any files, please update this README and any links pointing to the
   Dashboard for the Pooler (bgBouncer).  
   Taken from an [issue-discussion](https://github.com/cloudnative-pg/grafana-dashboards/issues/7#issuecomment-3804857545) as there is no official one yet.
 
+## RabbitMQ
+* `component-rabbitmq.json`  
+  Dashboard for the RabbitMQ Cluster.  
+  Based on [RabbitMQ Overview Dashboard](https://grafana.com/grafana/dashboards/10991-rabbitmq-overview/) Revision 15, but extended with more granular panels about single queues.
 
 # Update/Export/Import dashboards
 
