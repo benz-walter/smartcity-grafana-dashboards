@@ -11,6 +11,11 @@ If you update any files, please update this README and any links pointing to the
 * `component-airflow.json`  
   Custom dashboard manually created.
 
+## NginX Gateway Fabric
+
+* `component-nginx-gateway.json`  
+  Taken from the [offical documentation](https://docs.nginx.com/nginx-gateway-fabric/monitoring/prometheus/#configuring-grafana) (accessed at 2026-08-27)
+
 ## OPA (Open Policy Agent)
 
 * `component-opa.json`  
