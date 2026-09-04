@@ -33,6 +33,13 @@ If you update any files, please update this README and any links pointing to the
   Dashboard for the RabbitMQ Cluster.  
   Based on [RabbitMQ Overview Dashboard](https://grafana.com/grafana/dashboards/10991-rabbitmq-overview/) Revision 15, but extended with more granular panels about single queues.
 
+## SmartCity Management API (SCMP)
+
+* `component-scmp-api.json`  
+  Custom dashboard for the API of the SmartCity Management platform (namespace `scmp`): RED metrics per route, route cache, pod runtime, logs (Loki) and traces (Tempo).  
+  Source of truth is [`helm/dashboards/scmp-api.json` in the smartcity-management repository](https://github.com/benz-walter/smartcity-management/blob/main/helm/dashboards/scmp-api.json) — update it there and copy it here.  
+  Datasource inputs: `DS_PROMETHEUS`, `DS_LOKI`, `DS_TEMPO` (set by the `grafana.dashboards.components.scmp-api` entry in smartcity-charts).
+
 # Update/Export/Import dashboards
 
 To update the provided dashboards, some steps need to be considered.  
