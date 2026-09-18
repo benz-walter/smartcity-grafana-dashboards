@@ -22,6 +22,14 @@ If you update any files, please update this README and any links pointing to the
   Dashboard previously published at [Grafana Dashboards](https://grafana.com/grafana/dashboards/13965-metrics/) but was not updated to reflect the latest official changes within the [OPA contrib repository](https://github.com/open-policy-agent/contrib/tree/main/grafana-dashboard).  
   Thus, the dashboard was [downloaded directly from the repository](https://github.com/open-policy-agent/contrib/blob/86a67e2a11f415f24faf08104886b3ddd512ab64/grafana-dashboard/dashboard.json).
 
+## APC Fahrgastzählung (Eichenzell)
+
+* `component-apc.json`  
+  Custom dashboard for the automatic passenger counting (Strabag APC) of tenant Eichenzell: boardings/alightings, occupancy per vehicle, stops (table, top list, map), doors, data quality, vehicle status and import log.  
+  Source of truth is [`grafana/dashboards/component-apc.json` in the tenant-eichenzell repository](https://github.com/benz-walter/tenant-eichenzell/blob/main/grafana/dashboards/component-apc.json) — update it there and copy it here.  
+  Reads via Trino from `"postgresql-web-ui".afzs_fulda` (tables created by the apc-importer).  
+  Datasource input: `DS_TRINO` (plugin `trino-datasource`, set by the `grafana.dashboards.components.apc` entry in smartcity-charts). Dashboard variable `schema` defaults to `"postgresql-web-ui".afzs_fulda`.
+
 ## PostgreSQL (CloudNativePG)
 
 * `component-postgres-pooler.json`  

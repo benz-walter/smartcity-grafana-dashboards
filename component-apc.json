@@ -1,0 +1,2661 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_TRINO",
+      "label": "Trino",
+      "description": "Trino-Datasource der Plattform (Katalog postgresql-web-ui, Schema afzs_fulda)",
+      "type": "datasource",
+      "pluginId": "trino-datasource",
+      "pluginName": "Trino"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "trino-datasource",
+      "name": "Trino",
+      "version": "1.2.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "barchart",
+      "name": "Bar chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "piechart",
+      "name": "Pie chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "geomap",
+      "name": "Geomap",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Automatische Fahrgastzählung (Strabag APC, Rhönenergie): Ein-/Aussteiger, Besetzung, Haltestellen, Türen und Datenqualität aus den Tabellen des apc-importers (Variable Schema, in der Plattform \"postgresql-web-ui\".afzs_fulda über Trino). Quelle: tenant-eichenzell grafana/dashboards/component-apc.json.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "title": "apc-importer (tenant-eichenzell)",
+      "type": "link",
+      "icon": "doc",
+      "targetBlank": true,
+      "url": "https://github.com/benz-walter/tenant-eichenzell/tree/main/apc-importer"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Overview",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Events",
+      "description": "Türschließ-Events (eine XML = ein Event) im Zeitraum für die gewählten Fahrzeuge/Linien.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT count(*) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Einsteiger",
+      "description": "Summe aller gültigen Einsteiger (alle Türen, alle Klassen).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT coalesce(sum(boarding_total), 0) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Aussteiger",
+      "description": "Summe aller gültigen Aussteiger.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT coalesce(sum(alighting_total), 0) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Fahrzeuge",
+      "description": "Fahrzeuge, von denen im Zeitraum mindestens ein Event kam.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT count(DISTINCT vehicle_id) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Ungültige Events",
+      "description": "Events mit negativen oder nicht-numerischen Zählwerten (`valid = false`). Sollte 0 sein.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT count(*) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND NOT valid"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Letztes Event",
+      "description": "Sekunden seit dem letzten Event der ausgewählten Fahrzeuge (unabhängig von Zeitbereich und Linie).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT min(age_seconds) FROM ${schema}.v_vehicle_status WHERE vehicle_id IN (${vehicle:sqlstring})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "dtdurations",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 900
+              },
+              {
+                "color": "red",
+                "value": 3600
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Fahrgäste",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Ein- / Aussteiger pro Stunde",
+      "description": "Aussteiger sind zur besseren Lesbarkeit nach unten aufgetragen.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 0,
+          "rawSQL": "SELECT date_trunc('hour', event_ts) AS time,\n       sum(boarding_total)   AS \"Einsteiger\",\n       -sum(alighting_total) AS \"Aussteiger\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "pointSize": 4,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Einsteiger"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Aussteiger"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Besetzung pro Fahrzeug",
+      "description": "Kumulierte Besetzung (Ein- minus Aussteiger) je Fahrzeug und Betriebstag. Negative Werte bedeuten: mehr Aussteiger gezählt als je eingestiegen – Zählung unvollständig oder Sensor driftet.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 0,
+          "rawSQL": "SELECT event_ts AS time, vehicle_id AS metric, occupancy AS value\nFROM ${schema}.v_occupancy\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "pointSize": 4,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Fahrgäste pro Tag nach Klasse",
+      "description": "Einsteiger pro Betriebstag, aufgeteilt nach ObjectClass (Adult, Child, Bike, …).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 0,
+          "rawSQL": "SELECT date_trunc('day', e.event_ts) AS time, c.object_class AS metric, sum(c.boarding) AS value\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.boarding IS NOT NULL\nGROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 70,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "pointSize": 4,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Events pro Fahrzeug und Stunde",
+      "description": "Wie viele Türschließungen jedes Fahrzeug pro Stunde meldet. Ein Fahrzeug, das im Betrieb auf 0 fällt, sendet nicht mehr (SFTP, Gerät, Netz).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 0,
+          "rawSQL": "SELECT date_trunc('hour', event_ts) AS time, vehicle_id AS metric, count(*) AS value\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "pointSize": 4,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "sum"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": "row",
+      "title": "Linien & Haltestellen",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 14,
+      "type": "barchart",
+      "title": "Top-Haltestellen nach Einsteigern",
+      "description": "Die 15 Haltestellen mit den meisten Einsteigern im Zeitraum.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT coalesce(stop_name, stop_ref, '?') AS \"Haltestelle\", sum(boarding_total) AS \"Einsteiger\", sum(alighting_total) AS \"Aussteiger\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 2 DESC LIMIT 15"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 70,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Einsteiger"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Aussteiger"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "showValue": "auto",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.8,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": "geomap",
+      "title": "Haltestellen-Karte",
+      "description": "Haltestellen aus den GNSS-Positionen der Events, Größe und Farbe nach Einsteigern. Positionen sind der Mittelwert aller Events an der Haltestelle.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 23,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT coalesce(stop_name, stop_ref, '?') AS \"Haltestelle\",\n       avg(latitude)  AS latitude,\n       avg(longitude) AS longitude,\n       sum(boarding_total)  AS \"Einsteiger\",\n       sum(alighting_total) AS \"Aussteiger\",\n       count(*)             AS \"Events\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND latitude IS NOT NULL AND longitude IS NOT NULL AND latitude <> 0 AND longitude <> 0\nGROUP BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "view": {
+          "id": "coords",
+          "lat": 50.552,
+          "lon": 9.68,
+          "zoom": 12.5,
+          "allLayers": true
+        },
+        "controls": {
+          "showZoom": true,
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showScale": false,
+          "showMeasure": false,
+          "showDebug": false
+        },
+        "basemap": {
+          "type": "osm-standard",
+          "name": "OpenStreetMap",
+          "config": {}
+        },
+        "layers": [
+          {
+            "type": "markers",
+            "name": "Haltestellen",
+            "location": {
+              "mode": "auto"
+            },
+            "tooltip": true,
+            "config": {
+              "style": {
+                "size": {
+                  "field": "Einsteiger",
+                  "fixed": 5,
+                  "min": 4,
+                  "max": 24
+                },
+                "color": {
+                  "field": "Einsteiger",
+                  "fixed": "orange"
+                },
+                "opacity": 0.75,
+                "symbol": {
+                  "mode": "fixed",
+                  "fixed": "img/icons/marker/circle.svg"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                },
+                "rotation": {
+                  "fixed": 0,
+                  "mode": "mod",
+                  "min": -360,
+                  "max": 360
+                }
+              },
+              "showLegend": true
+            }
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "table",
+      "title": "Pro Linie",
+      "description": "Kennzahlen je Linie im Zeitraum. Max. Besetzung = höchste kumulierte Besetzung eines Fahrzeugs auf dieser Linie.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH occ AS (\n    SELECT coalesce(line_ref, '?') AS line, max(occupancy) AS max_occ\n    FROM ${schema}.v_occupancy WHERE $__timeFilter(event_ts) GROUP BY 1\n)\nSELECT coalesce(e.line_ref, '?') AS \"Linie\",\n       count(DISTINCT e.vehicle_id) AS \"Fahrzeuge\",\n       count(*) AS \"Events\",\n       sum(e.boarding_total) AS \"Einsteiger\",\n       sum(e.alighting_total) AS \"Aussteiger\",\n       max(occ.max_occ) AS \"Max. Besetzung\",\n       sum(CASE WHEN e.valid THEN 0 ELSE 1 END) AS \"Ungültig\"\nFROM ${schema}.events e\nLEFT JOIN occ ON occ.line = coalesce(e.line_ref, '?')\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 4 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ungültig"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "table",
+      "title": "Pro Haltestelle",
+      "description": "Ein- und Aussteiger sowie mittlere Haltezeit (Türöffnung bis Türschließung) je Haltestelle.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH dwell AS (\n    SELECT coalesce(e2.stop_name, e2.stop_ref, '?') AS stop, avg(c.dwell_seconds) AS avg_dwell\n    FROM ${schema}.counts c JOIN ${schema}.events e2 ON e2.id = c.event_id\n    WHERE $__timeFilter(e2.event_ts) AND c.dwell_seconds IS NOT NULL\n    GROUP BY 1\n)\nSELECT coalesce(e.stop_name, e.stop_ref, '?') AS \"Haltestelle\",\n       count(DISTINCT e.line_ref) AS \"Linien\",\n       count(*) AS \"Events\",\n       sum(e.boarding_total) AS \"Einsteiger\",\n       sum(e.alighting_total) AS \"Aussteiger\",\n       max(dwell.avg_dwell) AS \"Ø Haltezeit\"\nFROM ${schema}.events e\nLEFT JOIN dwell ON dwell.stop = coalesce(e.stop_name, e.stop_ref, '?')\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 4 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ø Haltezeit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "row",
+      "title": "Türen",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 19,
+      "type": "piechart",
+      "title": "Einsteiger pro Tür",
+      "description": "Anteil der Einsteiger je Tür. Tür 1 = vorne.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 41,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT 'Tür ' || coalesce(c.door_id, '?') AS \"Tür\", sum(c.boarding) AS \"Einsteiger\"\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.boarding IS NOT NULL\nGROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "piechart",
+      "title": "Aussteiger pro Tür",
+      "description": "Anteil der Aussteiger je Tür.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 41,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT 'Tür ' || coalesce(c.door_id, '?') AS \"Tür\", sum(c.alighting) AS \"Aussteiger\"\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.alighting IS NOT NULL\nGROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Türöffnungsdauer",
+      "description": "Mittlere Zeit von Türöffnung bis Türschließung pro Stunde und Tür (aus CountInfo).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 41,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 0,
+          "rawSQL": "SELECT date_trunc('hour', e.event_ts) AS time, 'Tür ' || coalesce(c.door_id, '?') AS metric, avg(c.dwell_seconds) AS value\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.dwell_seconds IS NOT NULL\nGROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "pointSize": 4,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 22,
+      "type": "row",
+      "title": "Datenqualität",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 49,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 23,
+      "type": "stat",
+      "title": "Auffälligkeiten",
+      "description": "Alle Einträge aus der Sicht `v_issues` im Zeitraum (Fehler + Hinweise).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 50,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT count(*) FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 24,
+      "type": "stat",
+      "title": "Fehler",
+      "description": "Auffälligkeiten mit severity = error (negative/ungültige Zählwerte).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 50,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT count(*) FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND severity = 'error'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 25,
+      "type": "stat",
+      "title": "Sequenzlücken",
+      "description": "Fehlende Events laut Sequenznummer – XMLs sind auf dem Weg vom Bus zum Server verloren gegangen.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 50,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT coalesce(sum(missing_count), 0) FROM ${schema}.v_sequence_gaps WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND missing_count > 0"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 26,
+      "type": "stat",
+      "title": "Zählqualität regulär",
+      "description": "Anteil der Einzelzählungen mit CountQuality = Regular.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 50,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT CAST(sum(CASE WHEN c.count_quality = 'Regular' THEN 1 ELSE 0 END) AS double precision) / nullif(count(*), 0)\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percentunit",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.9
+              },
+              {
+                "color": "green",
+                "value": 0.99
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 27,
+      "type": "stat",
+      "title": "Import-Fehler",
+      "description": "XML-Dateien, die der Importer nicht lesen konnte (liegen im Rejected-Ordner).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 50,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT count(*) FROM ${schema}.import_files WHERE status = 'error' AND $__timeFilter(imported_at)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 28,
+      "type": "stat",
+      "title": "Letzter Import",
+      "description": "Sekunden seit dem letzten erfolgreichen Import (Sicht v_import_status).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 50,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT age_seconds FROM ${schema}.v_import_status"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "dtdurations",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 900
+              },
+              {
+                "color": "red",
+                "value": 3600
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 29,
+      "type": "timeseries",
+      "title": "Auffälligkeiten pro Tag nach Typ",
+      "description": "Verteilung der Prüfregel-Treffer über die Zeit.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 54,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 0,
+          "rawSQL": "SELECT date_trunc('day', event_ts) AS time, issue_type AS metric, count(*) AS value\nFROM ${schema}.v_issues\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1, 2 ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 70,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": false,
+            "pointSize": 4,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "invalid_count"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sequence_gap"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "occupancy_negative"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": "table",
+      "title": "Fahrzeugstatus",
+      "description": "Letzter Stand je Fahrzeug (unabhängig vom Zeitraum) sowie Events und Auffälligkeiten im gewählten Zeitraum.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 54,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH ev AS (\n    SELECT vehicle_id, count(*) AS n FROM ${schema}.events WHERE $__timeFilter(event_ts) GROUP BY 1\n), iss AS (\n    SELECT vehicle_id, count(*) AS n FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) GROUP BY 1\n)\nSELECT s.vehicle_id AS \"Fahrzeug\",\n       s.last_event_ts AS \"Letztes Event\",\n       s.age_seconds AS \"Alter\",\n       s.last_line_ref AS \"Linie\",\n       s.last_stop_name AS \"Haltestelle\",\n       s.device_state AS \"Gerät\",\n       s.firmware_version AS \"Firmware\",\n       coalesce(ev.n, 0) AS \"Events\",\n       coalesce(iss.n, 0) AS \"Auffälligkeiten\"\nFROM ${schema}.v_vehicle_status s\nLEFT JOIN ev ON ev.vehicle_id = s.vehicle_id\nLEFT JOIN iss ON iss.vehicle_id = s.vehicle_id\nWHERE s.vehicle_id IN (${vehicle:sqlstring})\nORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alter"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dtdurations"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 900
+                    },
+                    {
+                      "color": "red",
+                      "value": 3600
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Gerät"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "running": {
+                        "color": "green",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "orange",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Auffälligkeiten"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 10
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 31,
+      "type": "table",
+      "title": "Auffälligkeiten",
+      "description": "Eine Zeile pro Event und Prüfregel aus der Sicht `v_issues`. severity `error` = fehlerhafte Daten, `warn` = plausibel prüfen.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 62,
+        "w": 24,
+        "h": 11
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT event_ts AS \"Zeit\", severity AS \"Schwere\", issue_type AS \"Typ\", vehicle_id AS \"Fahrzeug\", sequential_number AS \"Seq\",\n       line_ref AS \"Linie\", stop_name AS \"Haltestelle\", detail AS \"Details\"\nFROM ${schema}.v_issues\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nORDER BY event_ts DESC\nLIMIT 500"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Schwere"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "error": {
+                        "color": "red",
+                        "index": 0,
+                        "text": "error"
+                      },
+                      "warn": {
+                        "color": "orange",
+                        "index": 1,
+                        "text": "warn"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Zeit"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Typ"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fahrzeug"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Seq"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Linie"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 32,
+      "type": "table",
+      "title": "Importierte Dateien",
+      "description": "Die letzten 50 Importe (Dateiname, Zeitpunkt, Status).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 73,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "SELECT imported_at AS \"Importiert\", file_name AS \"Datei\", status AS \"Status\", event_count AS \"Events\", file_size AS \"Größe\", error AS \"Fehler\"\nFROM ${schema}.import_files\nORDER BY imported_at DESC\nLIMIT 50"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "ok": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "error": {
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Größe"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Importiert"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Events"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      }
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": [
+    "eichenzell",
+    "apc",
+    "component"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "DS_TRINO",
+        "label": "Trino",
+        "type": "datasource",
+        "query": "trino-datasource",
+        "current": {
+          "selected": false,
+          "text": "Trino",
+          "value": "Trino"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "description": "Trino-Datasource; die Postgres der Plattform ist dort als Katalog postgresql-web-ui föderiert"
+      },
+      {
+        "name": "schema",
+        "label": "Schema",
+        "type": "custom",
+        "hide": 0,
+        "description": "Vollqualifiziertes Schema der APC-Tabellen: über Trino \"postgresql-web-ui\".afzs_fulda, bei direkter PostgreSQL-Datasource nur afzs_fulda.",
+        "query": "Trino : \"postgresql-web-ui\".afzs_fulda, PostgreSQL : afzs_fulda",
+        "options": [
+          {
+            "selected": true,
+            "text": "Trino",
+            "value": "\"postgresql-web-ui\".afzs_fulda"
+          },
+          {
+            "selected": false,
+            "text": "PostgreSQL",
+            "value": "afzs_fulda"
+          }
+        ],
+        "current": {
+          "selected": true,
+          "text": "Trino",
+          "value": "\"postgresql-web-ui\".afzs_fulda"
+        },
+        "multi": false,
+        "includeAll": false,
+        "skipUrlSync": false
+      },
+      {
+        "name": "vehicle",
+        "label": "Fahrzeug",
+        "type": "query",
+        "datasource": {
+          "type": "trino-datasource",
+          "uid": "${DS_TRINO}"
+        },
+        "definition": "SELECT DISTINCT vehicle_id FROM ${schema}.events ORDER BY 1",
+        "query": "SELECT DISTINCT vehicle_id FROM ${schema}.events ORDER BY 1",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "options": [],
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "skipUrlSync": false
+      },
+      {
+        "name": "line",
+        "label": "Linie",
+        "type": "query",
+        "datasource": {
+          "type": "trino-datasource",
+          "uid": "${DS_TRINO}"
+        },
+        "definition": "SELECT DISTINCT coalesce(line_ref, '') FROM ${schema}.events ORDER BY 1",
+        "query": "SELECT DISTINCT coalesce(line_ref, '') FROM ${schema}.events ORDER BY 1",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "options": [],
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "1h"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Component: APC Fahrgastzählung",
+  "uid": "apc-passenger-counting",
+  "version": 1,
+  "weekStart": ""
+}
