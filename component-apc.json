@@ -654,7 +654,7 @@
             "fillOpacity": 10,
             "gradientMode": "opacity",
             "showPoints": "never",
-            "spanNulls": false,
+            "spanNulls": 10800000,
             "pointSize": 4,
             "axisPlacement": "auto",
             "axisLabel": "",
@@ -669,7 +669,8 @@
             "thresholdsStyle": {
               "mode": "off"
             }
-          }
+          },
+          "displayName": "${__field.labels.metric}"
         },
         "overrides": []
       },
