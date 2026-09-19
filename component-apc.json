@@ -498,8 +498,8 @@
     {
       "id": 9,
       "type": "timeseries",
-      "title": "Ein- / Aussteiger pro Stunde",
-      "description": "Aussteiger sind zur besseren Lesbarkeit nach unten aufgetragen.",
+      "title": "Ein- / Aussteiger",
+      "description": "Summe je Zeitintervall; das Intervall folgt dem Zeitbereich (mindestens 5 Minuten). Aussteiger sind zur besseren Lesbarkeit nach unten aufgetragen.",
       "datasource": {
         "type": "trino-datasource",
         "uid": "${DS_TRINO}"
@@ -518,7 +518,7 @@
             "uid": "${DS_TRINO}"
           },
           "format": 0,
-          "rawSQL": "SELECT date_trunc('hour', event_ts) AS time,\n       sum(boarding_total)   AS \"Einsteiger\",\n       -sum(alighting_total) AS \"Aussteiger\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 1"
+          "rawSQL": "SELECT $__timeGroup(event_ts, $__interval) AS time,\n       sum(boarding_total)   AS \"Einsteiger\",\n       -sum(alighting_total) AS \"Aussteiger\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -557,7 +557,8 @@
             },
             "thresholdsStyle": {
               "mode": "off"
-            }
+            },
+            "barAlignment": 1
           }
         },
         "overrides": [
@@ -604,7 +605,8 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "interval": "5m"
     },
     {
       "id": 10,
@@ -753,7 +755,8 @@
             "thresholdsStyle": {
               "mode": "off"
             }
-          }
+          },
+          "displayName": "${__field.labels.metric}"
         },
         "overrides": []
       },
@@ -773,8 +776,8 @@
     {
       "id": 12,
       "type": "timeseries",
-      "title": "Events pro Fahrzeug und Stunde",
-      "description": "Wie viele Türschließungen jedes Fahrzeug pro Stunde meldet. Ein Fahrzeug, das im Betrieb auf 0 fällt, sendet nicht mehr (SFTP, Gerät, Netz).",
+      "title": "Events pro Fahrzeug",
+      "description": "Wie viele Türschließungen jedes Fahrzeug je Zeitintervall meldet; das Intervall folgt dem Zeitbereich (mindestens 5 Minuten). Ein Fahrzeug, das im Betrieb keine Events mehr liefert, sendet nicht mehr (SFTP, Gerät, Netz).",
       "datasource": {
         "type": "trino-datasource",
         "uid": "${DS_TRINO}"
@@ -793,7 +796,7 @@
             "uid": "${DS_TRINO}"
           },
           "format": 0,
-          "rawSQL": "SELECT date_trunc('hour', event_ts) AS time, vehicle_id AS metric, count(*) AS value\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1, 2 ORDER BY 1"
+          "rawSQL": "SELECT $__timeGroup(event_ts, $__interval) AS time, vehicle_id AS metric, count(*) AS value\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1, 2 ORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -833,7 +836,8 @@
             "thresholdsStyle": {
               "mode": "off"
             }
-          }
+          },
+          "displayName": "${__field.labels.metric}"
         },
         "overrides": []
       },
@@ -850,7 +854,8 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "interval": "5m"
     },
     {
       "id": 13,
@@ -1426,7 +1431,7 @@
       "id": 21,
       "type": "timeseries",
       "title": "Türöffnungsdauer",
-      "description": "Mittlere Zeit von Türöffnung bis Türschließung pro Stunde und Tür (aus CountInfo).",
+      "description": "Mittlere Zeit von Türöffnung bis Türschließung je Zeitintervall und Tür (aus CountInfo); das Intervall folgt dem Zeitbereich (mindestens 5 Minuten).",
       "datasource": {
         "type": "trino-datasource",
         "uid": "${DS_TRINO}"
@@ -1445,7 +1450,7 @@
             "uid": "${DS_TRINO}"
           },
           "format": 0,
-          "rawSQL": "SELECT date_trunc('hour', e.event_ts) AS time, 'Tür ' || coalesce(c.door_id, '?') AS metric, avg(c.dwell_seconds) AS value\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.dwell_seconds IS NOT NULL\nGROUP BY 1, 2 ORDER BY 1"
+          "rawSQL": "SELECT $__timeGroup(e.event_ts, $__interval) AS time, 'Tür ' || coalesce(c.door_id, '?') AS metric, avg(c.dwell_seconds) AS value\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.dwell_seconds IS NOT NULL\nGROUP BY 1, 2 ORDER BY 1"
         }
       ],
       "fieldConfig": {
@@ -1486,7 +1491,8 @@
               "mode": "off"
             }
           },
-          "min": 0
+          "min": 0,
+          "displayName": "${__field.labels.metric}"
         },
         "overrides": []
       },
@@ -1501,7 +1507,8 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "interval": "5m"
     },
     {
       "id": 22,
@@ -1985,7 +1992,8 @@
             "thresholdsStyle": {
               "mode": "off"
             }
-          }
+          },
+          "displayName": "${__field.labels.metric}"
         },
         "overrides": [
           {
