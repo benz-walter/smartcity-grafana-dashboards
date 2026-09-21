@@ -75,7 +75,7 @@
       }
     ]
   },
-  "description": "Automatic passenger counting (Strabag APC, Rhönenergie): boardings/alightings, occupancy, stops, doors and data quality from the tables of the apc-importer (variable schema, in the platform \"postgresql-web-ui\".afzs_fulda via Trino). Source: tenant-eichenzell grafana/dashboards/component-apc.json.",
+  "description": "Automatic passenger counting (Strabag APC, Rhönenergie): boardings/alightings, occupancy, stops, trip analysis (load profile of a single trip), doors and data quality from the tables of the apc-importer (variable schema, in the platform \"postgresql-web-ui\".afzs_fulda via Trino). Source: tenant-eichenzell grafana/dashboards/component-apc.json.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -1279,13 +1279,1027 @@
       }
     },
     {
+      "id": 33,
+      "type": "row",
+      "title": "Trip",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 34,
+      "type": "stat",
+      "title": "Selected trip",
+      "description": "The trip selected in the variable \"Trip\": vehicle, service day, line, destination, first arrival, last departure and number of stop visits.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 41,
+        "w": 24,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT max(vehicle_id) AS \"Vehicle\",\n       max(service_date) AS \"Day\",\n       max(line_ref) AS \"Line\",\n       max(destination) AS \"Destination\",\n       min(arrival) AS \"Start\",\n       max(departure) AS \"End\",\n       count(*) AS \"Stops\"\nFROM per_stop"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Start"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time: HH:mm:ss"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "End"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time: HH:mm:ss"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 40,
+      "type": "stat",
+      "title": "Passengers of the trip",
+      "description": "Boardings/alightings of the selected trip and its occupancy. Occupancy is the cumulative occupancy since the start of the service day (as in \"Occupancy per vehicle\"), so it includes passengers already on board when the trip started and drifts with counting errors; negative values are shown in red. Max. occupancy = highest occupancy after departure from a stop.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 24,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT sum(boardings) AS \"Boardings\",\n       sum(alightings) AS \"Alightings\",\n       max(occ_start) AS \"Occupancy at start\",\n       max(occupancy) AS \"Max. occupancy\",\n       max(CASE WHEN stop_no = n_stops THEN occupancy END) AS \"Occupancy at end\",\n       sum(invalid) AS \"Invalid\"\nFROM per_stop"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Invalid"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Occupancy at start"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Occupancy at end"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Max. occupancy"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 35,
+      "type": "barchart",
+      "title": "Load profile per stop",
+      "description": "Boardings, alightings and occupancy after departure for every stop of the selected trip, in the order of the route. Several events (doors) at the same stop are combined into one stop visit.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 49,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT CAST(stop_no AS varchar) || '. ' || stop AS \"Stop\", boardings AS \"Boardings\", alightings AS \"Alightings\", occupancy AS \"Occupancy\"\nFROM per_stop ORDER BY stop_no"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 70,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Boardings"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alightings"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Occupancy"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "xField": "Stop",
+        "orientation": "vertical",
+        "xTickLabelRotation": -45,
+        "xTickLabelMaxLength": 22,
+        "xTickLabelSpacing": 0,
+        "showValue": "never",
+        "stacking": "none",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 36,
+      "type": "geomap",
+      "title": "Route of the trip",
+      "description": "Stops of the selected trip in route order (GNSS position of the events), connected as a route; marker size and color by occupancy after departure, label = stop number. Stops without a usable GNSS position are omitted.",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 49,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT stop_no AS \"No.\", stop AS \"Stop\", latitude, longitude, boardings AS \"Boardings\", alightings AS \"Alightings\", occupancy AS \"Occupancy\"\nFROM per_stop\nWHERE latitude IS NOT NULL AND longitude IS NOT NULL AND latitude <> 0 AND longitude <> 0\nORDER BY stop_no"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "view": {
+          "id": "fit",
+          "lat": 50.552,
+          "lon": 9.68,
+          "zoom": 12.5,
+          "allLayers": true,
+          "padding": 15
+        },
+        "controls": {
+          "showZoom": true,
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showScale": false,
+          "showMeasure": false,
+          "showDebug": false
+        },
+        "basemap": {
+          "type": "osm-standard",
+          "name": "OpenStreetMap",
+          "config": {}
+        },
+        "layers": [
+          {
+            "type": "route",
+            "name": "Route",
+            "location": {
+              "mode": "auto"
+            },
+            "tooltip": false,
+            "config": {
+              "style": {
+                "color": {
+                  "fixed": "blue"
+                },
+                "opacity": 0.7,
+                "lineWidth": 3,
+                "arrow": 1,
+                "size": {
+                  "fixed": 5,
+                  "min": 2,
+                  "max": 15
+                },
+                "symbol": {
+                  "mode": "fixed",
+                  "fixed": "img/icons/marker/circle.svg"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                },
+                "rotation": {
+                  "fixed": 0,
+                  "mode": "mod",
+                  "min": -360,
+                  "max": 360
+                }
+              }
+            }
+          },
+          {
+            "type": "markers",
+            "name": "Stops",
+            "location": {
+              "mode": "auto"
+            },
+            "tooltip": true,
+            "config": {
+              "style": {
+                "size": {
+                  "field": "Occupancy",
+                  "fixed": 6,
+                  "min": 5,
+                  "max": 22
+                },
+                "color": {
+                  "field": "Occupancy",
+                  "fixed": "orange"
+                },
+                "opacity": 0.8,
+                "symbol": {
+                  "mode": "fixed",
+                  "fixed": "img/icons/marker/circle.svg"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "No.",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                },
+                "rotation": {
+                  "fixed": 0,
+                  "mode": "mod",
+                  "min": -360,
+                  "max": 360
+                }
+              },
+              "showLegend": true
+            }
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        }
+      }
+    },
+    {
+      "id": 37,
+      "type": "table",
+      "title": "Stops of the trip",
+      "description": "One row per stop visit of the selected trip: arrival = first door opening, departure = last actual departure (or door closing), dwell = longest door-open duration at the stop, occupancy after departure (cumulative since start of service day).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 58,
+        "w": 16,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\n, dw AS (\n    SELECT e2.stop_no, max(c.dwell_seconds) AS dwell\n    FROM ${schema}.counts c JOIN sv e2 ON e2.id = c.event_id\n    GROUP BY 1\n)\nSELECT p.stop_no AS \"No.\", p.stop AS \"Stop\", p.arrival AS \"Arrival\", p.departure AS \"Departure\", dw.dwell AS \"Dwell\",\n       p.events AS \"Events\", p.boardings AS \"Boardings\", p.alightings AS \"Alightings\", p.occupancy AS \"Occupancy\", p.invalid AS \"Invalid\"\nFROM per_stop p LEFT JOIN dw ON dw.stop_no = p.stop_no\nORDER BY p.stop_no"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "No."
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 55
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Arrival"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time: HH:mm:ss"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Departure"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "time: HH:mm:ss"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Dwell"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Occupancy"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Invalid"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 38,
+      "type": "piechart",
+      "title": "Boardings by class",
+      "description": "Boardings of the selected trip per ObjectClass (Adult/Child/Bike …).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 58,
+        "w": 8,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT c.object_class AS \"Class\", sum(c.boarding) AS \"Boardings\"\nFROM ${schema}.counts c\nWHERE c.event_id IN (SELECT id FROM trip) AND c.boarding IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short",
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 39,
+      "type": "table",
+      "title": "Trips in time range",
+      "description": "All trips detected in the time range for the selected vehicles/lines (see variable \"Trip gap\"). Max. occupancy from the cumulative day occupancy (valid events only), net = boardings − alightings within the trip. Click a row to open the dashboard with that trip selected (new tab).",
+      "datasource": {
+        "type": "trino-datasource",
+        "uid": "${DS_TRINO}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 68,
+        "w": 24,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "trino-datasource",
+            "uid": "${DS_TRINO}"
+          },
+          "format": 1,
+          "rawSQL": "WITH e AS (\n    SELECT id, vehicle_id, service_date, event_ts, sequential_number, line_ref, destination, stop_ref, stop_name, boarding_total, alighting_total, valid,\n           CASE WHEN coalesce(service_journey_ref, '') <> '' THEN service_journey_ref\n                ELSE coalesce(line_ref, '') || '>' || coalesce(destination, '') END AS journey_key\n    FROM ${schema}.events\n    WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           LAG(coalesce(stop_ref, stop_name, '')) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_stop\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no,\n           CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END AS new_stop\n    FROM seg\n), ends AS (\n    SELECT num.*,\n           FIRST_VALUE(coalesce(stop_name, stop_ref, '?')) OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_stop,\n           LAST_VALUE(coalesce(stop_name, stop_ref, '?'))  OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_stop\n    FROM num\n)\nSELECT min(x.event_ts) AS \"Start\",\n       max(x.event_ts) AS \"End\",\n       x.vehicle_id AS \"Vehicle\",\n       max(coalesce(x.line_ref, '?')) AS \"Line\",\n       max(coalesce(x.destination, '?')) AS \"Destination\",\n       max(x.first_stop) AS \"First stop\",\n       max(x.last_stop) AS \"Last stop\",\n       sum(x.new_stop) AS \"Stops\",\n       count(*) AS \"Events\",\n       sum(x.boarding_total) AS \"Boardings\",\n       sum(x.alighting_total) AS \"Alightings\",\n       sum(x.boarding_total - x.alighting_total) AS \"Net\",\n       max(o.occupancy) AS \"Max. occupancy\",\n       sum(CASE WHEN x.valid THEN 0 ELSE 1 END) AS \"Invalid\",\n       min(x.id) AS \"Trip ID\"\nFROM ends x LEFT JOIN ${schema}.v_occupancy o ON o.event_id = x.id\nGROUP BY x.vehicle_id, x.service_date, x.trip_no\nORDER BY 1 DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "Analyze this trip (new tab)",
+              "url": "/d/${__dashboard.uid}?${__url_time_range}&var-trip=${__data.fields[\"Trip ID\"]}",
+              "targetBlank": true
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Start"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "End"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Vehicle"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Line"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 60
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Destination"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Net"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Invalid"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trip ID"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false,
+          "fields": ""
+        },
+        "sortBy": []
+      }
+    },
+    {
       "id": 18,
       "type": "row",
       "title": "Doors",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 40,
+        "y": 77,
         "w": 24,
         "h": 1
       },
@@ -1302,7 +2316,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 41,
+        "y": 78,
         "w": 6,
         "h": 8
       },
@@ -1370,7 +2384,7 @@
       },
       "gridPos": {
         "x": 6,
-        "y": 41,
+        "y": 78,
         "w": 6,
         "h": 8
       },
@@ -1438,7 +2452,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 41,
+        "y": 78,
         "w": 12,
         "h": 8
       },
@@ -1517,7 +2531,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 49,
+        "y": 86,
         "w": 24,
         "h": 1
       },
@@ -1534,7 +2548,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 50,
+        "y": 87,
         "w": 4,
         "h": 4
       },
@@ -1603,7 +2617,7 @@
       },
       "gridPos": {
         "x": 4,
-        "y": 50,
+        "y": 87,
         "w": 4,
         "h": 4
       },
@@ -1668,7 +2682,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 50,
+        "y": 87,
         "w": 4,
         "h": 4
       },
@@ -1737,7 +2751,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 50,
+        "y": 87,
         "w": 4,
         "h": 4
       },
@@ -1806,7 +2820,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 50,
+        "y": 87,
         "w": 4,
         "h": 4
       },
@@ -1871,7 +2885,7 @@
       },
       "gridPos": {
         "x": 20,
-        "y": 50,
+        "y": 87,
         "w": 4,
         "h": 4
       },
@@ -1940,7 +2954,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 54,
+        "y": 91,
         "w": 12,
         "h": 8
       },
@@ -2067,7 +3081,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 54,
+        "y": 91,
         "w": 12,
         "h": 8
       },
@@ -2243,7 +3257,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 62,
+        "y": 99,
         "w": 24,
         "h": 11
       },
@@ -2405,7 +3419,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 73,
+        "y": 110,
         "w": 24,
         "h": 8
       },
@@ -2645,6 +3659,75 @@
         "refresh": 2,
         "regex": "",
         "sort": 1,
+        "skipUrlSync": false
+      },
+      {
+        "name": "trip_gap",
+        "label": "Trip gap (min)",
+        "type": "custom",
+        "hide": 0,
+        "description": "Trip detection: a new trip starts when line, destination (or ServiceJourneyRef, if delivered) change or when no event was recorded for longer than this many minutes.",
+        "query": "10,15,20,30,45,60",
+        "options": [
+          {
+            "selected": false,
+            "text": "10",
+            "value": "10"
+          },
+          {
+            "selected": false,
+            "text": "15",
+            "value": "15"
+          },
+          {
+            "selected": true,
+            "text": "20",
+            "value": "20"
+          },
+          {
+            "selected": false,
+            "text": "30",
+            "value": "30"
+          },
+          {
+            "selected": false,
+            "text": "45",
+            "value": "45"
+          },
+          {
+            "selected": false,
+            "text": "60",
+            "value": "60"
+          }
+        ],
+        "current": {
+          "selected": true,
+          "text": "20",
+          "value": "20"
+        },
+        "multi": false,
+        "includeAll": false,
+        "skipUrlSync": false
+      },
+      {
+        "name": "trip",
+        "label": "Trip",
+        "type": "query",
+        "datasource": {
+          "type": "trino-datasource",
+          "uid": "${DS_TRINO}"
+        },
+        "description": "Trips detected in the time range for the selected vehicles/lines (newest first): start (local time) · vehicle · line → destination · first – last stop. The value is the ID of the trip's first event.",
+        "definition": "WITH e AS (\n    SELECT id, vehicle_id, service_date, event_ts, sequential_number, line_ref, destination, stop_ref, stop_name, boarding_total, alighting_total,\n           CASE WHEN coalesce(service_journey_ref, '') <> '' THEN service_journey_ref\n                ELSE coalesce(line_ref, '') || '>' || coalesce(destination, '') END AS journey_key\n    FROM ${schema}.events\n    WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_ts\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), ends AS (\n    SELECT vehicle_id, service_date, trip_no,\n           FIRST_VALUE(coalesce(stop_name, stop_ref, '?')) OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_stop,\n           LAST_VALUE(coalesce(stop_name, stop_ref, '?'))  OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_stop\n    FROM num\n), trips AS (\n    SELECT vehicle_id, service_date, trip_no, min(id) AS trip_id, min(event_ts) AS start_ts,\n           max(coalesce(line_ref, '?')) AS line_ref, max(coalesce(destination, '?')) AS destination\n    FROM num GROUP BY 1, 2, 3\n)\nSELECT CAST(t.trip_id AS varchar) || '|' || substr(CAST(t.start_ts AT TIME ZONE 'Europe/Berlin' AS varchar), 1, 16)\n       || ' · ' || t.vehicle_id || ' · L' || t.line_ref || ' → ' || t.destination || ' · ' || x.first_stop || ' – ' || x.last_stop AS trip\nFROM trips t\nJOIN (SELECT DISTINCT vehicle_id, service_date, trip_no, first_stop, last_stop FROM ends) x\n  ON x.vehicle_id = t.vehicle_id AND x.service_date = t.service_date AND x.trip_no = t.trip_no\nORDER BY t.start_ts DESC",
+        "query": "WITH e AS (\n    SELECT id, vehicle_id, service_date, event_ts, sequential_number, line_ref, destination, stop_ref, stop_name, boarding_total, alighting_total,\n           CASE WHEN coalesce(service_journey_ref, '') <> '' THEN service_journey_ref\n                ELSE coalesce(line_ref, '') || '>' || coalesce(destination, '') END AS journey_key\n    FROM ${schema}.events\n    WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_ts\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), ends AS (\n    SELECT vehicle_id, service_date, trip_no,\n           FIRST_VALUE(coalesce(stop_name, stop_ref, '?')) OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_stop,\n           LAST_VALUE(coalesce(stop_name, stop_ref, '?'))  OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_stop\n    FROM num\n), trips AS (\n    SELECT vehicle_id, service_date, trip_no, min(id) AS trip_id, min(event_ts) AS start_ts,\n           max(coalesce(line_ref, '?')) AS line_ref, max(coalesce(destination, '?')) AS destination\n    FROM num GROUP BY 1, 2, 3\n)\nSELECT CAST(t.trip_id AS varchar) || '|' || substr(CAST(t.start_ts AT TIME ZONE 'Europe/Berlin' AS varchar), 1, 16)\n       || ' · ' || t.vehicle_id || ' · L' || t.line_ref || ' → ' || t.destination || ' · ' || x.first_stop || ' – ' || x.last_stop AS trip\nFROM trips t\nJOIN (SELECT DISTINCT vehicle_id, service_date, trip_no, first_stop, last_stop FROM ends) x\n  ON x.vehicle_id = t.vehicle_id AND x.service_date = t.service_date AND x.trip_no = t.trip_no\nORDER BY t.start_ts DESC",
+        "regex": "/^(?<value>\\d+)\\|(?<text>.*)$/",
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "refresh": 2,
+        "sort": 0,
         "skipUrlSync": false
       }
     ]
