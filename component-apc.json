@@ -1,12 +1,12 @@
 {
   "__inputs": [
     {
-      "name": "DS_TRINO",
-      "label": "Trino",
-      "description": "Trino datasource of the platform (catalog postgresql-web-ui, schema afzs_fulda)",
+      "name": "DS_POSTGRES",
+      "label": "PostgreSQL",
+      "description": "PostgreSQL datasource of the platform (database web-ui, schema afzs_fulda)",
       "type": "datasource",
-      "pluginId": "trino-datasource",
-      "pluginName": "Trino"
+      "pluginId": "grafana-postgresql-datasource",
+      "pluginName": "PostgreSQL"
     }
   ],
   "__requires": [
@@ -18,9 +18,9 @@
     },
     {
       "type": "datasource",
-      "id": "trino-datasource",
-      "name": "Trino",
-      "version": "1.2.0"
+      "id": "grafana-postgresql-datasource",
+      "name": "PostgreSQL",
+      "version": "1.0.0"
     },
     {
       "type": "panel",
@@ -75,7 +75,7 @@
       }
     ]
   },
-  "description": "Automatic passenger counting (Strabag APC, Rhönenergie): boardings/alightings, occupancy, stops, trip analysis (load profile of a single trip), doors and data quality from the tables of the apc-importer (variable schema, in the platform \"postgresql-web-ui\".afzs_fulda via Trino). Source: tenant-eichenzell grafana/dashboards/component-apc.json.",
+  "description": "Automatic passenger counting (Strabag APC, Rhönenergie): boardings/alightings, occupancy, stops, trip analysis (load profile of a single trip), doors and data quality from the tables of the apc-importer (schema afzs_fulda, read directly from the platform PostgreSQL). Source: tenant-eichenzell grafana/dashboards/component-apc.json.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -110,8 +110,8 @@
       "title": "Events",
       "description": "Door-closing events (one XML = one event) in the time range for the selected vehicles/lines.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -123,11 +123,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT count(*) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+          "format": "table",
+          "rawSql": "SELECT count(*) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -171,8 +173,8 @@
       "title": "Boardings",
       "description": "Sum of all valid boardings (all doors, all classes).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 4,
@@ -184,11 +186,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT coalesce(sum(boarding_total), 0) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(boarding_total), 0) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -232,8 +236,8 @@
       "title": "Alightings",
       "description": "Sum of all valid alightings.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 8,
@@ -245,11 +249,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT coalesce(sum(alighting_total), 0) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(alighting_total), 0) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -293,8 +299,8 @@
       "title": "Vehicles",
       "description": "Vehicles that sent at least one event in the time range.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -306,11 +312,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT count(DISTINCT vehicle_id) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+          "format": "table",
+          "rawSql": "SELECT count(DISTINCT vehicle_id) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -354,8 +362,8 @@
       "title": "Invalid events",
       "description": "Events with negative or non-numeric count values (`valid = false`). Should be 0.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 16,
@@ -367,11 +375,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT count(*) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND NOT valid"
+          "format": "table",
+          "rawSql": "SELECT count(*) FROM ${schema}.events WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND NOT valid",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -419,8 +429,8 @@
       "title": "Last event",
       "description": "Seconds since the last event of the selected vehicles (independent of time range and line).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 20,
@@ -432,11 +442,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT min(age_seconds) FROM ${schema}.v_vehicle_status WHERE vehicle_id IN (${vehicle:sqlstring})"
+          "format": "table",
+          "rawSql": "SELECT min(age_seconds) FROM ${schema}.v_vehicle_status WHERE vehicle_id IN (${vehicle:sqlstring})",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -501,8 +513,8 @@
       "title": "Boardings / alightings",
       "description": "Sum per time interval; the interval follows the time range (minimum 5 minutes). Alightings are plotted downwards for readability.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -514,11 +526,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 0,
-          "rawSQL": "SELECT $__timeGroup(event_ts, $__interval) AS time,\n       sum(boarding_total)   AS \"Boardings\",\n       -sum(alighting_total) AS \"Alightings\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 1"
+          "format": "time_series",
+          "rawSql": "SELECT $__timeGroup(event_ts, $__interval) AS time,\n       sum(boarding_total)   AS \"Boardings\",\n       -sum(alighting_total) AS \"Alightings\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -614,8 +628,8 @@
       "title": "Occupancy per vehicle",
       "description": "Cumulative occupancy (boardings minus alightings) per vehicle and operating day. Negative values mean more alightings counted than ever boarded – counting incomplete or sensor drifting.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -627,11 +641,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 0,
-          "rawSQL": "SELECT event_ts AS time, vehicle_id AS metric, occupancy AS value\nFROM ${schema}.v_occupancy\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nORDER BY 1"
+          "format": "time_series",
+          "rawSql": "SELECT event_ts AS time, vehicle_id AS metric, occupancy AS value\nFROM ${schema}.v_occupancy\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -698,8 +714,8 @@
       "title": "Passengers per day by class",
       "description": "Boardings per operating day, split by ObjectClass (Adult, Child, Bike, …).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -711,11 +727,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 0,
-          "rawSQL": "SELECT date_trunc('day', e.event_ts) AS time, c.object_class AS metric, sum(c.boarding) AS value\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.boarding IS NOT NULL\nGROUP BY 1, 2 ORDER BY 1"
+          "format": "time_series",
+          "rawSql": "SELECT date_trunc('day', e.event_ts) AS time, c.object_class AS metric, sum(c.boarding) AS value\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.boarding IS NOT NULL\nGROUP BY 1, 2 ORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -779,8 +797,8 @@
       "title": "Events per vehicle",
       "description": "How many door closings each vehicle reports per time interval; the interval follows the time range (minimum 5 minutes). A vehicle in service that stops delivering events has stopped sending (SFTP, device, network).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -792,11 +810,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 0,
-          "rawSQL": "SELECT $__timeGroup(event_ts, $__interval) AS time, vehicle_id AS metric, count(*) AS value\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1, 2 ORDER BY 1"
+          "format": "time_series",
+          "rawSql": "SELECT $__timeGroup(event_ts, $__interval) AS time, vehicle_id AS metric, count(*) AS value\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1, 2 ORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -876,8 +896,8 @@
       "title": "Top stops by boardings",
       "description": "The 15 stops with the most boardings in the time range.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -889,11 +909,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT coalesce(stop_name, stop_ref, '?') AS \"Stop\", sum(boarding_total) AS \"Boardings\", sum(alighting_total) AS \"Alightings\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 2 DESC LIMIT 15"
+          "format": "table",
+          "rawSql": "SELECT coalesce(stop_name, stop_ref, '?') AS \"Stop\", sum(boarding_total) AS \"Boardings\", sum(alighting_total) AS \"Alightings\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 2 DESC LIMIT 15",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -987,8 +1009,8 @@
       "title": "Stop map",
       "description": "Stops derived from the GNSS positions of the events, size and color by boardings. Positions are the mean of all events at the stop.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -1000,11 +1022,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT coalesce(stop_name, stop_ref, '?') AS \"Stop\",\n       avg(latitude)  AS latitude,\n       avg(longitude) AS longitude,\n       sum(boarding_total)  AS \"Boardings\",\n       sum(alighting_total) AS \"Alightings\",\n       count(*)             AS \"Events\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND latitude IS NOT NULL AND longitude IS NOT NULL AND latitude <> 0 AND longitude <> 0\nGROUP BY 1"
+          "format": "table",
+          "rawSql": "SELECT coalesce(stop_name, stop_ref, '?') AS \"Stop\",\n       avg(latitude)  AS latitude,\n       avg(longitude) AS longitude,\n       sum(boarding_total)  AS \"Boardings\",\n       sum(alighting_total) AS \"Alightings\",\n       count(*)             AS \"Events\"\nFROM ${schema}.events\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND latitude IS NOT NULL AND longitude IS NOT NULL AND latitude <> 0 AND longitude <> 0\nGROUP BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1110,8 +1134,8 @@
       "title": "Per line",
       "description": "Key figures per line in the time range. Max. occupancy = highest cumulative occupancy of a vehicle on this line.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -1123,11 +1147,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH occ AS (\n    SELECT coalesce(line_ref, '?') AS line, max(occupancy) AS max_occ\n    FROM ${schema}.v_occupancy WHERE $__timeFilter(event_ts) GROUP BY 1\n)\nSELECT coalesce(e.line_ref, '?') AS \"Line\",\n       count(DISTINCT e.vehicle_id) AS \"Vehicles\",\n       count(*) AS \"Events\",\n       sum(e.boarding_total) AS \"Boardings\",\n       sum(e.alighting_total) AS \"Alightings\",\n       max(occ.max_occ) AS \"Max. occupancy\",\n       sum(CASE WHEN e.valid THEN 0 ELSE 1 END) AS \"Invalid\"\nFROM ${schema}.events e\nLEFT JOIN occ ON occ.line = coalesce(e.line_ref, '?')\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 4 DESC"
+          "format": "table",
+          "rawSql": "WITH occ AS (\n    SELECT coalesce(line_ref, '?') AS line, max(occupancy) AS max_occ\n    FROM ${schema}.v_occupancy WHERE $__timeFilter(event_ts) GROUP BY 1\n)\nSELECT coalesce(e.line_ref, '?') AS \"Line\",\n       count(DISTINCT e.vehicle_id) AS \"Vehicles\",\n       count(*) AS \"Events\",\n       sum(e.boarding_total) AS \"Boardings\",\n       sum(e.alighting_total) AS \"Alightings\",\n       max(occ.max_occ) AS \"Max. occupancy\",\n       sum(CASE WHEN e.valid THEN 0 ELSE 1 END) AS \"Invalid\"\nFROM ${schema}.events e\nLEFT JOIN occ ON occ.line = coalesce(e.line_ref, '?')\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 4 DESC",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1204,8 +1230,8 @@
       "title": "Per stop",
       "description": "Boardings and alightings as well as mean dwell time (door opening to door closing) per stop.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -1217,11 +1243,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH dwell AS (\n    SELECT coalesce(e2.stop_name, e2.stop_ref, '?') AS stop, avg(c.dwell_seconds) AS avg_dwell\n    FROM ${schema}.counts c JOIN ${schema}.events e2 ON e2.id = c.event_id\n    WHERE $__timeFilter(e2.event_ts) AND c.dwell_seconds IS NOT NULL\n    GROUP BY 1\n)\nSELECT coalesce(e.stop_name, e.stop_ref, '?') AS \"Stop\",\n       count(DISTINCT e.line_ref) AS \"Lines\",\n       count(*) AS \"Events\",\n       sum(e.boarding_total) AS \"Boardings\",\n       sum(e.alighting_total) AS \"Alightings\",\n       max(dwell.avg_dwell) AS \"Avg. dwell time\"\nFROM ${schema}.events e\nLEFT JOIN dwell ON dwell.stop = coalesce(e.stop_name, e.stop_ref, '?')\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 4 DESC"
+          "format": "table",
+          "rawSql": "WITH dwell AS (\n    SELECT coalesce(e2.stop_name, e2.stop_ref, '?') AS stop, avg(c.dwell_seconds) AS avg_dwell\n    FROM ${schema}.counts c JOIN ${schema}.events e2 ON e2.id = c.event_id\n    WHERE $__timeFilter(e2.event_ts) AND c.dwell_seconds IS NOT NULL\n    GROUP BY 1\n)\nSELECT coalesce(e.stop_name, e.stop_ref, '?') AS \"Stop\",\n       count(DISTINCT e.line_ref) AS \"Lines\",\n       count(*) AS \"Events\",\n       sum(e.boarding_total) AS \"Boardings\",\n       sum(e.alighting_total) AS \"Alightings\",\n       max(dwell.avg_dwell) AS \"Avg. dwell time\"\nFROM ${schema}.events e\nLEFT JOIN dwell ON dwell.stop = coalesce(e.stop_name, e.stop_ref, '?')\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})\nGROUP BY 1 ORDER BY 4 DESC",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1297,8 +1325,8 @@
       "title": "Selected trip",
       "description": "The trip selected in the variable \"Trip\": vehicle, service day, line, destination, first arrival, last departure and number of stop visits.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -1310,11 +1338,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT max(vehicle_id) AS \"Vehicle\",\n       max(service_date) AS \"Day\",\n       max(line_ref) AS \"Line\",\n       max(destination) AS \"Destination\",\n       min(arrival) AS \"Start\",\n       max(departure) AS \"End\",\n       count(*) AS \"Stops\"\nFROM per_stop"
+          "format": "table",
+          "rawSql": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT max(vehicle_id) AS \"Vehicle\",\n       max(service_date) AS \"Day\",\n       max(line_ref) AS \"Line\",\n       max(destination) AS \"Destination\",\n       min(arrival) AS \"Start\",\n       max(departure) AS \"End\",\n       count(*) AS \"Stops\"\nFROM per_stop",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1383,8 +1413,8 @@
       "title": "Passengers of the trip",
       "description": "Boardings/alightings of the selected trip and its occupancy. Occupancy is the cumulative occupancy since the start of the service day (as in \"Occupancy per vehicle\"), so it includes passengers already on board when the trip started and drifts with counting errors; negative values are shown in red. Max. occupancy = highest occupancy after departure from a stop.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -1396,11 +1426,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT sum(boardings) AS \"Boardings\",\n       sum(alightings) AS \"Alightings\",\n       max(occ_start) AS \"Occupancy at start\",\n       max(occupancy) AS \"Max. occupancy\",\n       max(CASE WHEN stop_no = n_stops THEN occupancy END) AS \"Occupancy at end\",\n       sum(invalid) AS \"Invalid\"\nFROM per_stop"
+          "format": "table",
+          "rawSql": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT sum(boardings) AS \"Boardings\",\n       sum(alightings) AS \"Alightings\",\n       max(occ_start) AS \"Occupancy at start\",\n       max(occupancy) AS \"Max. occupancy\",\n       max(CASE WHEN stop_no = n_stops THEN occupancy END) AS \"Occupancy at end\",\n       sum(invalid) AS \"Invalid\"\nFROM per_stop",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1541,8 +1573,8 @@
       "title": "Load profile per stop",
       "description": "Boardings, alightings and occupancy after departure for every stop of the selected trip, in the order of the route. Several events (doors) at the same stop are combined into one stop visit.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -1554,11 +1586,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT CAST(stop_no AS varchar) || '. ' || stop AS \"Stop\", boardings AS \"Boardings\", alightings AS \"Alightings\", occupancy AS \"Occupancy\"\nFROM per_stop ORDER BY stop_no"
+          "format": "table",
+          "rawSql": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT CAST(stop_no AS varchar) || '. ' || stop AS \"Stop\", boardings AS \"Boardings\", alightings AS \"Alightings\", occupancy AS \"Occupancy\"\nFROM per_stop ORDER BY stop_no",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1669,8 +1703,8 @@
       "title": "Route of the trip",
       "description": "Stops of the selected trip in route order (GNSS position of the events), connected as a route; marker size and color by occupancy after departure, label = stop number. Stops without a usable GNSS position are omitted.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -1682,11 +1716,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT stop_no AS \"No.\", stop AS \"Stop\", latitude, longitude, boardings AS \"Boardings\", alightings AS \"Alightings\", occupancy AS \"Occupancy\"\nFROM per_stop\nWHERE latitude IS NOT NULL AND longitude IS NOT NULL AND latitude <> 0 AND longitude <> 0\nORDER BY stop_no"
+          "format": "table",
+          "rawSql": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT stop_no AS \"No.\", stop AS \"Stop\", latitude, longitude, boardings AS \"Boardings\", alightings AS \"Alightings\", occupancy AS \"Occupancy\"\nFROM per_stop\nWHERE latitude IS NOT NULL AND longitude IS NOT NULL AND latitude <> 0 AND longitude <> 0\nORDER BY stop_no",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -1838,8 +1874,8 @@
       "title": "Stops of the trip",
       "description": "One row per stop visit of the selected trip: arrival = first door opening, departure = last actual departure (or door closing), dwell = longest door-open duration at the stop, occupancy after departure (cumulative since start of service day).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -1851,11 +1887,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\n, dw AS (\n    SELECT e2.stop_no, max(c.dwell_seconds) AS dwell\n    FROM ${schema}.counts c JOIN sv e2 ON e2.id = c.event_id\n    GROUP BY 1\n)\nSELECT p.stop_no AS \"No.\", p.stop AS \"Stop\", p.arrival AS \"Arrival\", p.departure AS \"Departure\", dw.dwell AS \"Dwell\",\n       p.events AS \"Events\", p.boardings AS \"Boardings\", p.alightings AS \"Alightings\", p.occupancy AS \"Occupancy\", p.invalid AS \"Invalid\"\nFROM per_stop p LEFT JOIN dw ON dw.stop_no = p.stop_no\nORDER BY p.stop_no"
+          "format": "table",
+          "rawSql": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\n, dw AS (\n    SELECT e2.stop_no, max(c.dwell_seconds) AS dwell\n    FROM ${schema}.counts c JOIN sv e2 ON e2.id = c.event_id\n    GROUP BY 1\n)\nSELECT p.stop_no AS \"No.\", p.stop AS \"Stop\", p.arrival AS \"Arrival\", p.departure AS \"Departure\", dw.dwell AS \"Dwell\",\n       p.events AS \"Events\", p.boardings AS \"Boardings\", p.alightings AS \"Alightings\", p.occupancy AS \"Occupancy\", p.invalid AS \"Invalid\"\nFROM per_stop p LEFT JOIN dw ON dw.stop_no = p.stop_no\nORDER BY p.stop_no",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2026,8 +2064,8 @@
       "title": "Boardings by class",
       "description": "Boardings of the selected trip per ObjectClass (Adult/Child/Bike …).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 16,
@@ -2039,11 +2077,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT c.object_class AS \"Class\", sum(c.boarding) AS \"Boardings\"\nFROM ${schema}.counts c\nWHERE c.event_id IN (SELECT id FROM trip) AND c.boarding IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC"
+          "format": "table",
+          "rawSql": "WITH e AS (\n    SELECT ev.*,\n           CASE WHEN coalesce(ev.service_journey_ref, '') <> '' THEN ev.service_journey_ref\n                ELSE coalesce(ev.line_ref, '') || '>' || coalesce(ev.destination, '') END AS journey_key,\n           CASE WHEN ev.valid THEN ev.boarding_total - ev.alighting_total ELSE 0 END AS net\n    FROM ${schema}.events ev\n    JOIN (SELECT vehicle_id, service_date FROM ${schema}.events WHERE id = ${trip}) k\n      ON k.vehicle_id = ev.vehicle_id AND k.service_date = ev.service_date\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           SUM(net)         OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) - net AS occ_before\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), trip AS (\n    SELECT * FROM (SELECT num.*, MAX(CASE WHEN id = ${trip} THEN trip_no END) OVER () AS sel_trip FROM num) n WHERE trip_no = sel_trip\n), sv AS (\n    SELECT t.*,\n           SUM(CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END)\n               OVER (ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS stop_no,\n           FIRST_VALUE(occ_before) OVER (ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS occ_start\n    FROM (SELECT trip.*, LAG(coalesce(stop_ref, stop_name, '')) OVER (ORDER BY event_ts, sequential_number, id) AS prev_stop FROM trip) t\n), per_stop AS (\n    SELECT sv.stop_no,\n           max(coalesce(sv.stop_name, sv.stop_ref, '?')) AS stop,\n           min(coalesce(sv.event_start, sv.event_ts)) AS arrival,\n           max(coalesce(sv.actual_departure_time, sv.event_end, sv.event_ts)) AS departure,\n           count(*) AS events,\n           sum(sv.boarding_total) AS boardings,\n           sum(sv.alighting_total) AS alightings,\n           max(sv.occ_start) AS occ_start,\n           max(sv.occ_start) + SUM(sum(sv.net)) OVER (ORDER BY sv.stop_no ROWS UNBOUNDED PRECEDING) AS occupancy,\n           sum(CASE WHEN sv.valid THEN 0 ELSE 1 END) AS invalid,\n           avg(sv.latitude) AS latitude,\n           avg(sv.longitude) AS longitude,\n           COUNT(*) OVER () AS n_stops,\n           max(sv.vehicle_id) AS vehicle_id,\n           max(CAST(sv.service_date AS varchar)) AS service_date,\n           max(coalesce(sv.line_ref, '?')) AS line_ref,\n           max(coalesce(sv.destination, '?')) AS destination\n    FROM sv\n    GROUP BY sv.stop_no\n)\nSELECT c.object_class AS \"Class\", sum(c.boarding) AS \"Boardings\"\nFROM ${schema}.counts c\nWHERE c.event_id IN (SELECT id FROM trip) AND c.boarding IS NOT NULL\nGROUP BY 1 ORDER BY 2 DESC",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2094,8 +2134,8 @@
       "title": "Trips in time range",
       "description": "All trips detected in the time range for the selected vehicles/lines (see variable \"Trip gap\"). Max. occupancy from the cumulative day occupancy (valid events only), net = boardings − alightings within the trip. Click a row to open the dashboard with that trip selected (new tab).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -2107,11 +2147,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH e AS (\n    SELECT id, vehicle_id, service_date, event_ts, sequential_number, line_ref, destination, stop_ref, stop_name, boarding_total, alighting_total, valid,\n           CASE WHEN coalesce(service_journey_ref, '') <> '' THEN service_journey_ref\n                ELSE coalesce(line_ref, '') || '>' || coalesce(destination, '') END AS journey_key\n    FROM ${schema}.events\n    WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           LAG(coalesce(stop_ref, stop_name, '')) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_stop\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no,\n           CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END AS new_stop\n    FROM seg\n), ends AS (\n    SELECT num.*,\n           FIRST_VALUE(coalesce(stop_name, stop_ref, '?')) OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_stop,\n           LAST_VALUE(coalesce(stop_name, stop_ref, '?'))  OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_stop\n    FROM num\n)\nSELECT min(x.event_ts) AS \"Start\",\n       max(x.event_ts) AS \"End\",\n       x.vehicle_id AS \"Vehicle\",\n       max(coalesce(x.line_ref, '?')) AS \"Line\",\n       max(coalesce(x.destination, '?')) AS \"Destination\",\n       max(x.first_stop) AS \"First stop\",\n       max(x.last_stop) AS \"Last stop\",\n       sum(x.new_stop) AS \"Stops\",\n       count(*) AS \"Events\",\n       sum(x.boarding_total) AS \"Boardings\",\n       sum(x.alighting_total) AS \"Alightings\",\n       sum(x.boarding_total - x.alighting_total) AS \"Net\",\n       max(o.occupancy) AS \"Max. occupancy\",\n       sum(CASE WHEN x.valid THEN 0 ELSE 1 END) AS \"Invalid\",\n       min(x.id) AS \"Trip ID\"\nFROM ends x LEFT JOIN ${schema}.v_occupancy o ON o.event_id = x.id\nGROUP BY x.vehicle_id, x.service_date, x.trip_no\nORDER BY 1 DESC"
+          "format": "table",
+          "rawSql": "WITH e AS (\n    SELECT id, vehicle_id, service_date, event_ts, sequential_number, line_ref, destination, stop_ref, stop_name, boarding_total, alighting_total, valid,\n           CASE WHEN coalesce(service_journey_ref, '') <> '' THEN service_journey_ref\n                ELSE coalesce(line_ref, '') || '>' || coalesce(destination, '') END AS journey_key\n    FROM ${schema}.events\n    WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_ts,\n           LAG(coalesce(stop_ref, stop_name, '')) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_stop\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no,\n           CASE WHEN prev_stop IS NULL OR prev_stop <> coalesce(stop_ref, stop_name, '') THEN 1 ELSE 0 END AS new_stop\n    FROM seg\n), ends AS (\n    SELECT num.*,\n           FIRST_VALUE(coalesce(stop_name, stop_ref, '?')) OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_stop,\n           LAST_VALUE(coalesce(stop_name, stop_ref, '?'))  OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_stop\n    FROM num\n)\nSELECT min(x.event_ts) AS \"Start\",\n       max(x.event_ts) AS \"End\",\n       x.vehicle_id AS \"Vehicle\",\n       max(coalesce(x.line_ref, '?')) AS \"Line\",\n       max(coalesce(x.destination, '?')) AS \"Destination\",\n       max(x.first_stop) AS \"First stop\",\n       max(x.last_stop) AS \"Last stop\",\n       sum(x.new_stop) AS \"Stops\",\n       count(*) AS \"Events\",\n       sum(x.boarding_total) AS \"Boardings\",\n       sum(x.alighting_total) AS \"Alightings\",\n       sum(x.boarding_total - x.alighting_total) AS \"Net\",\n       max(o.occupancy) AS \"Max. occupancy\",\n       sum(CASE WHEN x.valid THEN 0 ELSE 1 END) AS \"Invalid\",\n       min(x.id) AS \"Trip ID\"\nFROM ends x LEFT JOIN ${schema}.v_occupancy o ON o.event_id = x.id\nGROUP BY x.vehicle_id, x.service_date, x.trip_no\nORDER BY 1 DESC",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2311,8 +2353,8 @@
       "title": "Boardings per door",
       "description": "Share of boardings per door. Door 1 = front.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -2324,11 +2366,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT 'Door ' || coalesce(c.door_id, '?') AS \"Door\", sum(c.boarding) AS \"Boardings\"\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.boarding IS NOT NULL\nGROUP BY 1 ORDER BY 1"
+          "format": "table",
+          "rawSql": "SELECT 'Door ' || coalesce(c.door_id, '?') AS \"Door\", sum(c.boarding) AS \"Boardings\"\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.boarding IS NOT NULL\nGROUP BY 1 ORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2379,8 +2423,8 @@
       "title": "Alightings per door",
       "description": "Share of alightings per door.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 6,
@@ -2392,11 +2436,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT 'Door ' || coalesce(c.door_id, '?') AS \"Door\", sum(c.alighting) AS \"Alightings\"\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.alighting IS NOT NULL\nGROUP BY 1 ORDER BY 1"
+          "format": "table",
+          "rawSql": "SELECT 'Door ' || coalesce(c.door_id, '?') AS \"Door\", sum(c.alighting) AS \"Alightings\"\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.alighting IS NOT NULL\nGROUP BY 1 ORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2447,8 +2493,8 @@
       "title": "Door open duration",
       "description": "Mean time from door opening to door closing per time interval and door (from CountInfo); the interval follows the time range (minimum 5 minutes).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -2460,11 +2506,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 0,
-          "rawSQL": "SELECT $__timeGroup(e.event_ts, $__interval) AS time, 'Door ' || coalesce(c.door_id, '?') AS metric, avg(c.dwell_seconds) AS value\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.dwell_seconds IS NOT NULL\nGROUP BY 1, 2 ORDER BY 1"
+          "format": "time_series",
+          "rawSql": "SELECT $__timeGroup(e.event_ts, $__interval) AS time, 'Door ' || coalesce(c.door_id, '?') AS metric, avg(c.dwell_seconds) AS value\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring}) AND c.dwell_seconds IS NOT NULL\nGROUP BY 1, 2 ORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2543,8 +2591,8 @@
       "title": "Issues",
       "description": "All entries from the view `v_issues` in the time range (errors + warnings).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -2556,11 +2604,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT count(*) FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})"
+          "format": "table",
+          "rawSql": "SELECT count(*) FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2612,8 +2662,8 @@
       "title": "Errors",
       "description": "Issues with severity = error (negative/invalid count values).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 4,
@@ -2625,11 +2675,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT count(*) FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND severity = 'error'"
+          "format": "table",
+          "rawSql": "SELECT count(*) FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring}) AND severity = 'error'",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2677,8 +2729,8 @@
       "title": "Sequence gaps",
       "description": "Missing events according to sequence number – XMLs were lost on the way from the bus to the server.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 8,
@@ -2690,11 +2742,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT coalesce(sum(missing_count), 0) FROM ${schema}.v_sequence_gaps WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND missing_count > 0"
+          "format": "table",
+          "rawSql": "SELECT coalesce(sum(missing_count), 0) FROM ${schema}.v_sequence_gaps WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND missing_count > 0",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2746,8 +2800,8 @@
       "title": "Regular count quality",
       "description": "Share of individual counts with CountQuality = Regular.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -2759,11 +2813,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT CAST(sum(CASE WHEN c.count_quality = 'Regular' THEN 1 ELSE 0 END) AS double precision) / nullif(count(*), 0)\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})"
+          "format": "table",
+          "rawSql": "SELECT CAST(sum(CASE WHEN c.count_quality = 'Regular' THEN 1 ELSE 0 END) AS double precision) / nullif(count(*), 0)\nFROM ${schema}.events e JOIN ${schema}.counts c ON c.event_id = e.id\nWHERE $__timeFilter(e.event_ts) AND e.vehicle_id IN (${vehicle:sqlstring}) AND coalesce(e.line_ref, '') IN (${line:sqlstring})",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2815,8 +2871,8 @@
       "title": "Import errors",
       "description": "XML files the importer could not read (stored in the rejected folder).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 16,
@@ -2828,11 +2884,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT count(*) FROM ${schema}.import_files WHERE status = 'error' AND $__timeFilter(imported_at)"
+          "format": "table",
+          "rawSql": "SELECT count(*) FROM ${schema}.import_files WHERE status = 'error' AND $__timeFilter(imported_at)",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2880,8 +2938,8 @@
       "title": "Last import",
       "description": "Seconds since the last successful import (view v_import_status).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 20,
@@ -2893,11 +2951,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT age_seconds FROM ${schema}.v_import_status"
+          "format": "table",
+          "rawSql": "SELECT age_seconds FROM ${schema}.v_import_status",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -2949,8 +3009,8 @@
       "title": "Issues per day by type",
       "description": "Distribution of check-rule hits over time.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -2962,11 +3022,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 0,
-          "rawSQL": "SELECT date_trunc('day', event_ts) AS time, issue_type AS metric, count(*) AS value\nFROM ${schema}.v_issues\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1, 2 ORDER BY 1"
+          "format": "time_series",
+          "rawSql": "SELECT date_trunc('day', event_ts) AS time, issue_type AS metric, count(*) AS value\nFROM ${schema}.v_issues\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nGROUP BY 1, 2 ORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -3076,8 +3138,8 @@
       "title": "Vehicle status",
       "description": "Latest state per vehicle (independent of the time range) plus events and issues in the selected time range.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 12,
@@ -3089,11 +3151,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "WITH ev AS (\n    SELECT vehicle_id, count(*) AS n FROM ${schema}.events WHERE $__timeFilter(event_ts) GROUP BY 1\n), iss AS (\n    SELECT vehicle_id, count(*) AS n FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) GROUP BY 1\n)\nSELECT s.vehicle_id AS \"Vehicle\",\n       s.last_event_ts AS \"Last event\",\n       s.age_seconds AS \"Age\",\n       s.last_line_ref AS \"Line\",\n       s.last_stop_name AS \"Stop\",\n       s.device_state AS \"Device\",\n       s.firmware_version AS \"Firmware\",\n       coalesce(ev.n, 0) AS \"Events\",\n       coalesce(iss.n, 0) AS \"Issues\"\nFROM ${schema}.v_vehicle_status s\nLEFT JOIN ev ON ev.vehicle_id = s.vehicle_id\nLEFT JOIN iss ON iss.vehicle_id = s.vehicle_id\nWHERE s.vehicle_id IN (${vehicle:sqlstring})\nORDER BY 1"
+          "format": "table",
+          "rawSql": "WITH ev AS (\n    SELECT vehicle_id, count(*) AS n FROM ${schema}.events WHERE $__timeFilter(event_ts) GROUP BY 1\n), iss AS (\n    SELECT vehicle_id, count(*) AS n FROM ${schema}.v_issues WHERE $__timeFilter(event_ts) GROUP BY 1\n)\nSELECT s.vehicle_id AS \"Vehicle\",\n       s.last_event_ts AS \"Last event\",\n       s.age_seconds AS \"Age\",\n       s.last_line_ref AS \"Line\",\n       s.last_stop_name AS \"Stop\",\n       s.device_state AS \"Device\",\n       s.firmware_version AS \"Firmware\",\n       coalesce(ev.n, 0) AS \"Events\",\n       coalesce(iss.n, 0) AS \"Issues\"\nFROM ${schema}.v_vehicle_status s\nLEFT JOIN ev ON ev.vehicle_id = s.vehicle_id\nLEFT JOIN iss ON iss.vehicle_id = s.vehicle_id\nWHERE s.vehicle_id IN (${vehicle:sqlstring})\nORDER BY 1",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -3252,8 +3316,8 @@
       "title": "Issues",
       "description": "One row per event and check rule from the view `v_issues`. severity `error` = faulty data, `warn` = check plausibility.",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -3265,11 +3329,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT event_ts AS \"Time\", severity AS \"Severity\", issue_type AS \"Type\", vehicle_id AS \"Vehicle\", sequential_number AS \"Seq\",\n       line_ref AS \"Line\", stop_name AS \"Stop\", detail AS \"Details\"\nFROM ${schema}.v_issues\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nORDER BY event_ts DESC\nLIMIT 500"
+          "format": "table",
+          "rawSql": "SELECT event_ts AS \"Time\", severity AS \"Severity\", issue_type AS \"Type\", vehicle_id AS \"Vehicle\", sequential_number AS \"Seq\",\n       line_ref AS \"Line\", stop_name AS \"Stop\", detail AS \"Details\"\nFROM ${schema}.v_issues\nWHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\nORDER BY event_ts DESC\nLIMIT 500",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -3414,8 +3480,8 @@
       "title": "Imported files",
       "description": "The last 50 imports (file name, timestamp, status).",
       "datasource": {
-        "type": "trino-datasource",
-        "uid": "${DS_TRINO}"
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_POSTGRES}"
       },
       "gridPos": {
         "x": 0,
@@ -3427,11 +3493,13 @@
         {
           "refId": "A",
           "datasource": {
-            "type": "trino-datasource",
-            "uid": "${DS_TRINO}"
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_POSTGRES}"
           },
-          "format": 1,
-          "rawSQL": "SELECT imported_at AS \"Imported\", file_name AS \"File\", status AS \"Status\", event_count AS \"Events\", file_size AS \"Size\", error AS \"Error\"\nFROM ${schema}.import_files\nORDER BY imported_at DESC\nLIMIT 50"
+          "format": "table",
+          "rawSql": "SELECT imported_at AS \"Imported\", file_name AS \"File\", status AS \"Status\", event_count AS \"Events\", file_size AS \"Size\", error AS \"Error\"\nFROM ${schema}.import_files\nORDER BY imported_at DESC\nLIMIT 50",
+          "rawQuery": true,
+          "editorMode": "code"
         }
       ],
       "fieldConfig": {
@@ -3559,14 +3627,14 @@
   "templating": {
     "list": [
       {
-        "name": "DS_TRINO",
-        "label": "Trino",
+        "name": "DS_POSTGRES",
+        "label": "PostgreSQL",
         "type": "datasource",
-        "query": "trino-datasource",
+        "query": "grafana-postgresql-datasource",
         "current": {
           "selected": false,
-          "text": "Trino",
-          "value": "Trino"
+          "text": "grafana-postgresql-datasource",
+          "value": "grafana-postgresql-datasource"
         },
         "hide": 0,
         "includeAll": false,
@@ -3575,43 +3643,36 @@
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "description": "Trino datasource; the platform's Postgres is federated there as catalog postgresql-web-ui"
+        "description": "PostgreSQL datasource of the platform (database web-ui); the APC tables live in schema afzs_fulda"
       },
       {
         "name": "schema",
         "label": "Schema",
-        "type": "custom",
-        "hide": 0,
-        "description": "Fully qualified schema of the APC tables: via Trino \"postgresql-web-ui\".afzs_fulda, with a direct PostgreSQL datasource just afzs_fulda.",
-        "query": "Trino : \"postgresql-web-ui\".afzs_fulda, PostgreSQL : afzs_fulda",
+        "type": "constant",
+        "hide": 2,
+        "query": "afzs_fulda",
+        "current": {
+          "selected": false,
+          "text": "afzs_fulda",
+          "value": "afzs_fulda"
+        },
         "options": [
           {
             "selected": true,
-            "text": "Trino",
-            "value": "\"postgresql-web-ui\".afzs_fulda"
-          },
-          {
-            "selected": false,
-            "text": "PostgreSQL",
+            "text": "afzs_fulda",
             "value": "afzs_fulda"
           }
         ],
-        "current": {
-          "selected": true,
-          "text": "Trino",
-          "value": "\"postgresql-web-ui\".afzs_fulda"
-        },
-        "multi": false,
-        "includeAll": false,
-        "skipUrlSync": false
+        "skipUrlSync": false,
+        "description": "Schema of the APC tables created by the apc-importer."
       },
       {
         "name": "vehicle",
         "label": "Vehicle",
         "type": "query",
         "datasource": {
-          "type": "trino-datasource",
-          "uid": "${DS_TRINO}"
+          "type": "grafana-postgresql-datasource",
+          "uid": "${DS_POSTGRES}"
         },
         "definition": "SELECT DISTINCT vehicle_id FROM ${schema}.events ORDER BY 1",
         "query": "SELECT DISTINCT vehicle_id FROM ${schema}.events ORDER BY 1",
@@ -3638,8 +3699,8 @@
         "label": "Line",
         "type": "query",
         "datasource": {
-          "type": "trino-datasource",
-          "uid": "${DS_TRINO}"
+          "type": "grafana-postgresql-datasource",
+          "uid": "${DS_POSTGRES}"
         },
         "definition": "SELECT DISTINCT coalesce(line_ref, '') FROM ${schema}.events ORDER BY 1",
         "query": "SELECT DISTINCT coalesce(line_ref, '') FROM ${schema}.events ORDER BY 1",
@@ -3714,8 +3775,8 @@
         "label": "Trip",
         "type": "query",
         "datasource": {
-          "type": "trino-datasource",
-          "uid": "${DS_TRINO}"
+          "type": "grafana-postgresql-datasource",
+          "uid": "${DS_POSTGRES}"
         },
         "description": "Trips detected in the time range for the selected vehicles/lines (newest first): start (local time) · vehicle · line → destination · first – last stop. The value is the ID of the trip's first event.",
         "definition": "WITH e AS (\n    SELECT id, vehicle_id, service_date, event_ts, sequential_number, line_ref, destination, stop_ref, stop_name, boarding_total, alighting_total,\n           CASE WHEN coalesce(service_journey_ref, '') <> '' THEN service_journey_ref\n                ELSE coalesce(line_ref, '') || '>' || coalesce(destination, '') END AS journey_key\n    FROM ${schema}.events\n    WHERE $__timeFilter(event_ts) AND vehicle_id IN (${vehicle:sqlstring}) AND coalesce(line_ref, '') IN (${line:sqlstring})\n), seg AS (\n    SELECT e.*,\n           LAG(journey_key) OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_key,\n           LAG(event_ts)    OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id) AS prev_ts\n    FROM e\n), num AS (\n    SELECT seg.*,\n           SUM(CASE WHEN prev_ts IS NULL OR prev_key <> journey_key OR prev_ts < event_ts - INTERVAL '${trip_gap}' MINUTE THEN 1 ELSE 0 END)\n               OVER (PARTITION BY vehicle_id, service_date ORDER BY event_ts, sequential_number, id ROWS UNBOUNDED PRECEDING) AS trip_no\n    FROM seg\n), ends AS (\n    SELECT vehicle_id, service_date, trip_no,\n           FIRST_VALUE(coalesce(stop_name, stop_ref, '?')) OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS first_stop,\n           LAST_VALUE(coalesce(stop_name, stop_ref, '?'))  OVER (PARTITION BY vehicle_id, service_date, trip_no ORDER BY event_ts, sequential_number, id ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_stop\n    FROM num\n), trips AS (\n    SELECT vehicle_id, service_date, trip_no, min(id) AS trip_id, min(event_ts) AS start_ts,\n           max(coalesce(line_ref, '?')) AS line_ref, max(coalesce(destination, '?')) AS destination\n    FROM num GROUP BY 1, 2, 3\n)\nSELECT CAST(t.trip_id AS varchar) || '|' || substr(CAST(t.start_ts AT TIME ZONE 'Europe/Berlin' AS varchar), 1, 16)\n       || ' · ' || t.vehicle_id || ' · L' || t.line_ref || ' → ' || t.destination || ' · ' || x.first_stop || ' – ' || x.last_stop AS trip\nFROM trips t\nJOIN (SELECT DISTINCT vehicle_id, service_date, trip_no, first_stop, last_stop FROM ends) x\n  ON x.vehicle_id = t.vehicle_id AND x.service_date = t.service_date AND x.trip_no = t.trip_no\nORDER BY t.start_ts DESC",

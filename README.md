@@ -28,8 +28,8 @@ If you update any files, please update this README and any links pointing to the
   Custom dashboard for the automatic passenger counting (Strabag APC) of tenant Eichenzell: boardings/alightings, occupancy per vehicle, stops (table, top list, map), trip analysis, doors, data quality, vehicle status and import log.  
   The _Trip_ section analyses a single trip (variable `trip`): key figures, load profile per stop (boardings/alightings/occupancy), route on the map, stop table, boardings by class and a table of all trips in the time range. As the current XML format carries no `ServiceJourneyRef`, trips are detected from the data: per vehicle and service day, a new trip starts when line or destination change or no event was recorded for longer than the variable `trip_gap` (default 20 min); a `ServiceJourneyRef`, if delivered, takes precedence. Occupancy in this section is the cumulative day occupancy (as in _Occupancy per vehicle_), so a trip may start with passengers already on board.  
   Source of truth is [`grafana/dashboards/component-apc.json` in the tenant-eichenzell repository](https://github.com/benz-walter/tenant-eichenzell/blob/main/grafana/dashboards/component-apc.json) — update it there and copy it here.  
-  Reads via Trino from `"postgresql-web-ui".afzs_fulda` (tables created by the apc-importer).  
-  Datasource input: `DS_TRINO` (plugin `trino-datasource`, set by the `grafana.dashboards.components.apc` entry in smartcity-charts). Dashboard variable `schema` defaults to `"postgresql-web-ui".afzs_fulda`.
+  Reads directly from the platform PostgreSQL (database `web-ui`, schema `afzs_fulda`, tables created by the apc-importer). It used to go through Trino (catalog `postgresql-web-ui`); the direct connection was measured to be 3–20× faster per panel, and all queries run unchanged on both engines.  
+  Datasource input: `DS_POSTGRES` (plugin `grafana-postgresql-datasource`, set by the `grafana.dashboards.components.apc` entry in smartcity-charts). Dashboard variable `schema` is a hidden constant `afzs_fulda`.
 
 ## PostgreSQL (CloudNativePG)
 
