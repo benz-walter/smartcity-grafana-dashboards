@@ -1060,7 +1060,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1071,7 +1071,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1082,7 +1082,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1093,7 +1093,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "E",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1262,7 +1262,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1273,7 +1273,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1284,7 +1284,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1438,7 +1438,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1449,7 +1449,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1460,7 +1460,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1615,7 +1615,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1626,7 +1626,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1637,7 +1637,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1648,7 +1648,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "E",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1787,7 +1787,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1798,7 +1798,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1937,7 +1937,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -1948,7 +1948,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -2334,7 +2334,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -2538,54 +2538,59 @@
       "title": "Average time per phase (from query TIMELINE logs)",
       "description": "Trino logs one TIMELINE line per finished query. This is the average of each phase over the interval. Planning = analysis + planning (includes connector metadata calls, e.g. JDBC table handles); waiting = time until the first task runs; scheduling = split scheduling; running = actual execution; finishing = result delivery.",
       "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "type": "loki",
+        "uid": "${DS_LOKI}"
       },
       "targets": [
         {
-          "refId": "P",
+          "refId": "A",
           "datasource": {
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
           "expr": "avg_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | unwrap duration_seconds(planning) [$__auto]) by (app)",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "planning"
         },
         {
-          "refId": "W",
+          "refId": "B",
           "datasource": {
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
           "expr": "avg_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | unwrap duration_seconds(waiting) [$__auto]) by (app)",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "waiting"
         },
         {
-          "refId": "S",
+          "refId": "C",
           "datasource": {
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
           "expr": "avg_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | unwrap duration_seconds(scheduling) [$__auto]) by (app)",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "scheduling"
         },
         {
-          "refId": "R",
+          "refId": "D",
           "datasource": {
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
           "expr": "avg_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | unwrap duration_seconds(running) [$__auto]) by (app)",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "running"
         },
         {
-          "refId": "F",
+          "refId": "E",
           "datasource": {
             "type": "loki",
             "uid": "${DS_LOKI}"
           },
           "expr": "avg_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | unwrap duration_seconds(finishing) [$__auto]) by (app)",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "finishing"
         }
       ],
       "fieldConfig": {
@@ -2731,8 +2736,8 @@
       "title": "Elapsed time percentiles (from TIMELINE logs)",
       "description": "Wall-clock time per query (begin to end) computed from the logs. Unlike the Prometheus percentiles this covers every query in the interval, not a sliding window.",
       "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "type": "loki",
+        "uid": "${DS_LOKI}"
       },
       "targets": [
         {
@@ -2742,7 +2747,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "quantile_over_time(0.5, {namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | unwrap duration_seconds(elapsed) [$__auto]) by (app)",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "p50"
         },
         {
           "refId": "B",
@@ -2751,7 +2757,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "quantile_over_time(0.95, {namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | unwrap duration_seconds(elapsed) [$__auto]) by (app)",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "p95"
         },
         {
           "refId": "C",
@@ -2760,7 +2767,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "max_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | unwrap duration_seconds(elapsed) [$__auto]) by (app)",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "max"
         }
       ],
       "fieldConfig": {
@@ -2876,8 +2884,8 @@
       "title": "Finished queries by state / interval",
       "description": "FINISHED vs FAILED from the TIMELINE lines.",
       "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "type": "loki",
+        "uid": "${DS_LOKI}"
       },
       "targets": [
         {
@@ -2887,7 +2895,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "sum by (state) (count_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` [$__auto]))",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "{{state}}"
         }
       ],
       "fieldConfig": {
@@ -2987,8 +2996,8 @@
       "title": "Failed queries by error code / interval",
       "description": "Trino error codes of failed queries, e.g. ICEBERG_INVALID_METADATA, TABLE_NOT_FOUND, EXCEEDED_MEMORY_LIMIT.",
       "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "type": "loki",
+        "uid": "${DS_LOKI}"
       },
       "targets": [
         {
@@ -2998,7 +3007,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "sum by (error) (count_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" | regexp `TIMELINE: Query (?P<query_id>\\S+) :: (?P<state>[A-Z]+)(?: \\((?P<error>[A-Z_]+)\\))? :: elapsed (?P<elapsed>[0-9.]+[a-z]+) :: planning (?P<planning>[0-9.]+[a-z]+) :: waiting (?P<waiting>[0-9.]+[a-z]+) :: scheduling (?P<scheduling>[0-9.]+[a-z]+) :: running (?P<running>[0-9.]+[a-z]+) :: finishing (?P<finishing>[0-9.]+[a-z]+)` | error != \"\" [$__auto]))",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "{{error}}"
         }
       ],
       "fieldConfig": {
@@ -3078,7 +3088,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "{namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |= \"TIMELINE\" |~ `:: FAILED|elapsed [0-9]+\\.[0-9]+(s|m) ::`",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": ""
         }
       ],
       "options": {
@@ -4029,7 +4040,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4040,7 +4051,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4051,7 +4062,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4062,7 +4073,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "E",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4241,7 +4252,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4252,7 +4263,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4405,7 +4416,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4613,7 +4624,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4624,7 +4635,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4763,7 +4774,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4774,7 +4785,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4785,7 +4796,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -4796,7 +4807,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "E",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -5143,7 +5154,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -5236,7 +5247,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -5247,7 +5258,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -5363,7 +5374,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -5472,7 +5483,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -5584,7 +5595,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -5595,7 +5606,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -5688,7 +5699,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6072,7 +6083,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6083,7 +6094,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6094,7 +6105,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6105,7 +6116,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "E",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6116,7 +6127,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "F",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6127,7 +6138,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "G",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6138,7 +6149,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "H",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6231,7 +6242,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6242,7 +6253,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6253,7 +6264,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6264,7 +6275,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "E",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6275,7 +6286,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "F",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6286,7 +6297,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "G",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6297,7 +6308,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "H",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6391,7 +6402,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6402,7 +6413,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6495,7 +6506,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6506,7 +6517,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6600,7 +6611,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6611,7 +6622,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6622,7 +6633,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "D",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6633,7 +6644,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "E",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6728,7 +6739,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6739,7 +6750,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "C",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -6846,7 +6857,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -7135,7 +7146,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -7344,7 +7355,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -7542,7 +7553,7 @@
           "instant": false
         },
         {
-          "refId": "A",
+          "refId": "B",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -7737,8 +7748,8 @@
       "title": "Log lines by level",
       "description": "Trino's log format is `timestamp<TAB>LEVEL<TAB>thread<TAB>logger<TAB>message`.",
       "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "type": "loki",
+        "uid": "${DS_LOKI}"
       },
       "targets": [
         {
@@ -7748,7 +7759,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "sum by (level) (count_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} | regexp `^\\S+\\t(?P<level>[A-Z]+)\\t` [$__auto]))",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "{{level}}"
         }
       ],
       "fieldConfig": {
@@ -7878,8 +7890,8 @@
       "title": "Warnings and errors by logger",
       "description": "Which component produces warnings and errors, e.g. io.trino.node.RemoteNodeState when a worker is unreachable.",
       "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "type": "loki",
+        "uid": "${DS_LOKI}"
       },
       "targets": [
         {
@@ -7889,7 +7901,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "sum by (logger) (count_over_time({namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} | regexp `^\\S+\\t(?P<level>WARN|ERROR)\\t\\S+\\t(?P<logger>\\S+)\\t` | level != \"\" [$__auto]))",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": "{{logger}}"
         }
       ],
       "fieldConfig": {
@@ -7969,7 +7982,8 @@
             "uid": "${DS_LOKI}"
           },
           "expr": "{namespace=\"$namespace\", app=\"trino\", pod=~\"$pod\"} |~ `\\tWARN\\t|\\tERROR\\t`",
-          "queryType": "range"
+          "queryType": "range",
+          "legendFormat": ""
         }
       ],
       "options": {
