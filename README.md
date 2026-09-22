@@ -31,6 +31,13 @@ If you update any files, please update this README and any links pointing to the
   Reads directly from the platform PostgreSQL (database `web-ui`, schema `afzs_fulda`, tables created by the apc-importer). It used to go through Trino (catalog `postgresql-web-ui`); the direct connection was measured to be 3–20× faster per panel, and all queries run unchanged on both engines.  
   Datasource input: `DS_POSTGRES` (plugin `grafana-postgresql-datasource`, set by the `grafana.dashboards.components.apc` entry in smartcity-charts). Dashboard variable `schema` is a hidden constant `afzs_fulda`.
 
+## Trino (Eichenzell)
+
+* `component-trino.json`  
+  Custom dashboard for the Stackable Trino cluster of tenant Eichenzell: query throughput, latency percentiles and failures (QueryManager metrics), per-phase timing (planning/waiting/scheduling/running/finishing) parsed from Trino's `TIMELINE` log lines in Loki, the coordinator's in-memory query history and node list (`system.runtime.queries` / `system.runtime.nodes` via the Trino datasource), cluster and per-node memory pools, tasks/splits, the JDBC connector towards the PostgreSQL catalogs (connection opens, metadata call latency, cache hit rates, failures), JVM/pod resources and logs.  
+  Metrics come from Trino's built-in OpenMetrics endpoint (`trino_*`, `io_trino_*`, `jvm_*` metric names) scraped by Prometheus, so the community dashboards built for the JMX exporter (grafana.com 20207/20208) do not apply.  
+  Datasource inputs: `DS_PROMETHEUS`, `DS_LOKI`, `DS_TRINO` (plugin `trino-datasource`). Variables: `namespace`, `cluster` (Stackable TrinoCluster name, derived from the scrape job), `pod`, `catalog`.
+
 ## PostgreSQL (CloudNativePG)
 
 * `component-postgres-pooler.json`  
