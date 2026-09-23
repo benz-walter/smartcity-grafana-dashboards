@@ -1072,9 +1072,12 @@
           "showDebug": false
         },
         "basemap": {
-          "type": "osm-standard",
-          "name": "OpenStreetMap",
-          "config": {}
+          "type": "carto",
+          "name": "CARTO light",
+          "config": {
+            "theme": "light",
+            "showLabels": true
+          }
         },
         "layers": [
           {
@@ -1767,9 +1770,12 @@
           "showDebug": false
         },
         "basemap": {
-          "type": "osm-standard",
-          "name": "OpenStreetMap",
-          "config": {}
+          "type": "carto",
+          "name": "CARTO light",
+          "config": {
+            "theme": "light",
+            "showLabels": true
+          }
         },
         "layers": [
           {
