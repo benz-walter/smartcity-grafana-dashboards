@@ -512,7 +512,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 29
       },
       "id": 52,
       "options": {
@@ -551,12 +551,14 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "align": "auto",
+            "align": "center",
             "cellOptions": {
               "type": "auto"
             },
             "inspect": false
           },
+          "unit": "s",
+          "decimals": 0,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -564,21 +566,88 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Since last successful request"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 120
+                    },
+                    {
+                      "color": "red",
+                      "value": 600
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Since last request"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 120
+                    },
+                    {
+                      "color": "red",
+                      "value": 600
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 21
       },
       "id": 53,
       "options": {
@@ -595,7 +664,7 @@
         "sortBy": [
           {
             "desc": false,
-            "displayName": "last success bundle request"
+            "displayName": "Server"
           }
         ]
       },
@@ -605,10 +674,11 @@
           "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "last_bundle_request{namespace=~\"$namespace\", instance=~\"$instance\"} > 0",
-          "format": "time_series",
+          "expr": "time() - max by (pod, name) (last_bundle_request{namespace=~\"$namespace\", instance=~\"$instance\"}) / 1e9",
+          "format": "table",
+          "hide": false,
           "instant": true,
-          "legendFormat": "",
+          "legendFormat": "__auto",
           "range": false,
           "refId": "A"
         },
@@ -616,11 +686,11 @@
           "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "last_success_bundle_activation{namespace=~\"$namespace\", instance=~\"$instance\"} > 0",
-          "format": "time_series",
+          "expr": "time() - max by (pod, name) (last_success_bundle_request{namespace=~\"$namespace\", instance=~\"$instance\"}) / 1e9",
+          "format": "table",
           "hide": false,
           "instant": true,
-          "legendFormat": "",
+          "legendFormat": "__auto",
           "range": false,
           "refId": "B"
         },
@@ -628,11 +698,11 @@
           "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "last_success_bundle_download{namespace=~\"$namespace\", instance=~\"$instance\"} > 0",
-          "format": "time_series",
+          "expr": "time() - max by (pod, name) (last_success_bundle_download{namespace=~\"$namespace\", instance=~\"$instance\"}) / 1e9",
+          "format": "table",
           "hide": false,
           "instant": true,
-          "legendFormat": "",
+          "legendFormat": "__auto",
           "range": false,
           "refId": "C"
         },
@@ -640,11 +710,11 @@
           "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "last_success_bundle_request{namespace=~\"$namespace\", instance=~\"$instance\"} > 0",
-          "format": "time_series",
+          "expr": "time() - max by (pod, name) (last_success_bundle_activation{namespace=~\"$namespace\", instance=~\"$instance\"}) / 1e9",
+          "format": "table",
           "hide": false,
           "instant": true,
-          "legendFormat": "",
+          "legendFormat": "__auto",
           "range": false,
           "refId": "D"
         }
@@ -652,153 +722,42 @@
       "title": "Bundle tracker",
       "transformations": [
         {
-          "id": "labelsToFields",
-          "options": {
-            "keepLabels": [
-              "name",
-              "namespace",
-              "pod",
-              "service",
-              "job",
-              "instance",
-              "endpoint",
-              "container"
-            ],
-            "mode": "columns"
-          }
-        },
-        {
           "id": "merge",
           "options": {}
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "last bundle request",
-            "binary": {
-              "left": "last_bundle_request",
-              "operator": "/",
-              "reducer": "sum",
-              "right": "1000000"
-            },
-            "mode": "binary",
-            "reduce": {
-              "include": [
-                "last_bundle_request"
-              ],
-              "reducer": "sum"
-            },
-            "replaceFields": false
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "last success bundle activation",
-            "binary": {
-              "left": "last_success_bundle_activation",
-              "operator": "/",
-              "reducer": "sum",
-              "right": "1000000"
-            },
-            "mode": "binary",
-            "reduce": {
-              "reducer": "sum"
-            }
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "last success bundle download",
-            "binary": {
-              "left": "last_success_bundle_download",
-              "operator": "/",
-              "reducer": "sum",
-              "right": "1000000"
-            },
-            "mode": "binary",
-            "reduce": {
-              "reducer": "sum"
-            }
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "last success bundle request",
-            "binary": {
-              "left": "last_success_bundle_request",
-              "operator": "/",
-              "reducer": "sum",
-              "right": "1000000"
-            },
-            "mode": "binary",
-            "reduce": {
-              "reducer": "sum"
-            },
-            "replaceFields": false
-          }
-        },
-        {
-          "id": "convertFieldType",
-          "options": {
-            "conversions": [
-              {
-                "destinationType": "time",
-                "targetField": "last bundle request"
-              },
-              {
-                "destinationType": "time",
-                "targetField": "last success bundle activation"
-              },
-              {
-                "destinationType": "time",
-                "targetField": "last success bundle download"
-              },
-              {
-                "destinationType": "time",
-                "targetField": "last success bundle request"
-              }
-            ],
-            "fields": {}
-          }
         },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "last_bundle_request": true,
-              "last_success_bundle_activation": true,
-              "last_success_bundle_download": true,
-              "last_success_bundle_request": true
+              "Time": true,
+              "namespace": true,
+              "job": true,
+              "container": true,
+              "endpoint": true,
+              "service": true,
+              "instance": true
             },
             "indexByName": {
-              "Time": 0,
-              "container": 7,
-              "endpoint": 8,
-              "instance": 9,
-              "job": 10,
-              "last bundle request": 2,
-              "last success bundle activation": 3,
-              "last success bundle download": 4,
-              "last success bundle request": 5,
-              "last_bundle_request": 6,
-              "last_success_bundle_activation": 14,
-              "last_success_bundle_download": 15,
-              "last_success_bundle_request": 16,
+              "pod": 0,
               "name": 1,
-              "namespace": 11,
-              "pod": 12,
-              "service": 13
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #C": 4,
+              "Value #D": 5
             },
             "renameByName": {
-              "name": "bundle name"
+              "pod": "Server",
+              "name": "Bundle",
+              "Value #A": "Since last request",
+              "Value #B": "Since last successful request",
+              "Value #C": "Since last successful download",
+              "Value #D": "Since last activation"
             }
           }
         }
       ],
-      "type": "table"
+      "type": "table",
+      "description": "Time since the last bundle events per OPA server and bundle. Requests are polled regularly, so 'since last successful request' should stay low; red means the server stopped getting bundles. An activation only happens when the bundle changed, so it may legitimately be old."
     },
     {
       "datasource": "Prometheus",
@@ -858,8 +817,8 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 24
+        "x": 12,
+        "y": 29
       },
       "id": 51,
       "options": {
@@ -900,7 +859,7 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "align": "auto",
+            "align": "center",
             "cellOptions": {
               "type": "auto"
             },
@@ -913,21 +872,63 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "OK": {
+                        "text": "OK",
+                        "color": "green",
+                        "index": 0
+                      },
+                      "NOT_READY": {
+                        "text": "NOT READY",
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "WARN": {
+                        "text": "WARN",
+                        "color": "yellow",
+                        "index": 2
+                      },
+                      "ERROR": {
+                        "text": "ERROR",
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 24
+        "x": 0,
+        "y": 21
       },
       "id": 50,
       "options": {
@@ -940,93 +941,13 @@
           ],
           "show": false
         },
-        "showHeader": true
-      },
-      "pluginVersion": "10.1.5",
-      "targets": [
-        {
-          "datasource": "Prometheus",
-          "disableTextWrap": false,
-          "editorMode": "builder",
-          "exemplar": false,
-          "expr": "plugin_status_gauge{namespace=\"$namespace\"}",
-          "format": "table",
-          "fullMetaSearch": false,
-          "includeNullMetadata": true,
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
-          "refId": "A",
-          "useBackend": false
-        }
-      ],
-      "title": "Plugins Status",
-      "transformations": [
-        {
-          "id": "filterFieldsByName",
-          "options": {
-            "include": {
-              "names": [
-                "instance",
-                "name",
-                "namespace",
-                "status",
-                "Time"
-              ]
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true,
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green"
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 32
-      },
-      "id": 55,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "frameIndex": 0,
         "showHeader": true,
-        "sortBy": []
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Status"
+          }
+        ]
       },
       "pluginVersion": "10.1.5",
       "targets": [
@@ -1034,40 +955,128 @@
           "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": false,
-          "expr": "increase(bundle_failed_load_counter{namespace=~\"$namespace\", instance=~\"$instance\"}[$interval])",
-          "format": "time_series",
+          "expr": "max by (pod, name, status) (plugin_status_gauge{namespace=~\"$namespace\", instance=~\"$instance\"}) == 1",
+          "format": "table",
           "hide": false,
-          "instant": false,
+          "instant": true,
           "legendFormat": "__auto",
-          "range": true,
+          "range": false,
           "refId": "A"
         }
       ],
-      "title": "Bundle Failed Load",
+      "title": "Plugin Status",
       "transformations": [
-        {
-          "id": "labelsToFields",
-          "options": {
-            "mode": "columns"
-          }
-        },
-        {
-          "id": "merge",
-          "options": {}
-        },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": false,
-              "Value": true
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "namespace": true,
+              "job": true,
+              "container": true,
+              "endpoint": true,
+              "service": true,
+              "instance": true
             },
-            "indexByName": {},
-            "renameByName": {}
+            "indexByName": {
+              "pod": 0,
+              "name": 1,
+              "status": 2
+            },
+            "renameByName": {
+              "pod": "Server",
+              "name": "Plugin",
+              "status": "Status"
+            }
           }
         }
       ],
-      "type": "table"
+      "type": "table",
+      "description": "Current status of every OPA plugin, per server. Anything but OK is highlighted."
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "green",
+                  "index": 0
+                },
+                "1": {
+                  "text": "FAILING",
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "no data"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 55,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {}
+      },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "max by (pod) (clamp_max(ceil(increase(bundle_failed_load_counter{namespace=~\"$namespace\", instance=~\"$instance\"}[5m])), 1)) or max by (pod) (0 * last_bundle_request{namespace=~\"$namespace\", instance=~\"$instance\"})",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Bundle Load Health (failed loads in the last 5m)",
+      "transformations": [],
+      "type": "stat",
+      "description": "One tile per OPA server. FAILING if at least one bundle load failed within the last 5 minutes, otherwise OK. Short failures right after a pod start (the bundle-builder sidecar is not ready yet) clear after 5 minutes.",
+      "pluginVersion": "10.1.5"
     },
     {
       "collapsed": false,
