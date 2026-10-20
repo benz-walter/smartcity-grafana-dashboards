@@ -38,6 +38,13 @@ If you update any files, please update this README and any links pointing to the
   Metrics come from Trino's built-in OpenMetrics endpoint (`trino_*`, `io_trino_*`, `jvm_*` metric names) scraped by Prometheus, so the community dashboards built for the JMX exporter (grafana.com 20207/20208) do not apply.  
   Datasource inputs: `DS_PROMETHEUS`, `DS_LOKI`, `DS_TRINO` (plugin `trino-datasource`). Variables: `namespace`, `cluster` (Stackable TrinoCluster name, derived from the scrape job), `pod`, `catalog`.
 
+## Velero
+
+* `commons-velero.json`  
+  Custom dashboard for Velero (Kubernetes backup and restore): overview, backup locations, schedules, backups, restores, volume snapshots, node agent (volume data), repository maintenance and Velero pods.  
+  Metrics of the Velero server and node agent are scraped by Prometheus through the PodMonitor of the prometheus component.  
+  Datasource input: `DS_PROMETHEUS`.
+
 ## PostgreSQL (CloudNativePG)
 
 * `component-postgres-pooler.json`  
